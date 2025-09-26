@@ -1,0 +1,39 @@
+{
+    "name": "app-chat-backend",
+    "version": "1.0.0",
+    "description": "",
+    "main": "app.js",
+    "scripts": {
+        "start": "node app.js",
+        "dev": "nodemon app.js"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "bcryptjs": "^3.0.2",
+        "cors": "^2.8.5",
+        "dotenv": "^16.5.0",
+        "express": "^5.1.0",
+        "jsonwebtoken": "^9.0.2",
+        "module-alias": "^2.2.3",
+        "mongoose": "^8.16.0",
+        "nodemailer": "^7.0.6",
+        "sequelize": "^6.37.7",
+        "zod": "^3.25.67"
+    },
+    "_moduleAliases": {
+        "@src": "src",
+        "@controllers": "src/controllers",
+        "@middleware": "src/middleware",
+        "@models": "src/models",
+        "@services": "src/services",
+        "@routes": "src/routes",
+        "@utils": "src/utils",
+        "@validations": "src/validations",
+        "@config": "src/config",
+        "@helpers": "src/helpers"
+    },
+    "devDependencies": {
+        "nodemon": "^3.1.10"
+    }
+}
