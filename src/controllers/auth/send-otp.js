@@ -2,63 +2,75 @@ const { generateOtp } = require("@utils/generateOtp");
 const { sendOtpEmail } = require("@services/otp");
 const Otp = require("@src/models/Otp");
 const { baseResponse } = require("@src/config/response");
+const User = require("@src/models/User");
 
-
-// Lấy thời gian expires từ env
 const OTP_EXPIRES_MS = parseInt(process.env.OTP_EXPIRES_MS) || 120000; // 2 phút
 
 const sendOtp = async (req, res) => {
     try {
         const { email } = req.body;
 
+        // Parallel check email & existing OTP
+        const [existingUser, existingOtp] = await Promise.all([
+            User.findOne({ email }),
+            Otp.findOne({ email, is_used: false, expires_at: { $gt: new Date() } })
+        ]);
 
-        // Kiểm tra đã có OTP chưa hết hạn cho số điện thoại này chưa
-        const existingOtp = await Otp.findOne({
-            email: email,
-            is_used: false,
-            expires_at: { $gt: new Date() },
-        });
-        console.log(existingOtp)
+        if (existingUser) {
+            return baseResponse(res, {
+                success: false,
+                statusCode: 400,
+                msg: "EMAIL_EXISTED",
+            });
+        }
 
         if (existingOtp) {
             return baseResponse(res, {
                 success: false,
                 statusCode: 400,
-                msg: "Đã có mã OTP chưa hết hạn. Vui lòng đợi hoặc yêu cầu mã mới sau khi hết hạn",
+                msg: "OTP_NOT_EXPIRED",
             });
         }
 
-        // Xóa các OTP cũ đã hết hạn hoặc đã sử dụng của số điện thoại này
-        await Otp.deleteMany({
-            email: email,
-            $or: [{ is_used: true }, { expires_at: { $lte: new Date() } }],
-        });
+        // Xóa OTP cũ bất đồng bộ (không block response)
+        Otp.deleteMany({
+            email,
+            $or: [{ is_used: true }, { expires_at: { $lte: new Date() } }]
+        }).catch(err => console.error("Delete old OTP error:", err));
 
         // Gen OTP
         const otp = generateOtp(6);
 
-        // Gửi email
-        const otpCode = await sendOtpEmail(email, otp);
-
         // Lưu OTP mới vào database
         const newOtp = new Otp({
-            email: email,
-            otp: otpCode,
+            email,
+            otp,
             expires_at: new Date(Date.now() + OTP_EXPIRES_MS),
         });
-
         await newOtp.save();
 
-        console.log(`Send otp for ${email}: ${otpCode}`); // Chỉ log để debug
-
-        return res.json({
+        // Trả response ngay lập tức
+        baseResponse(res, {
             success: true,
-            message: "OTP sent successfully",
+            statusCode: 201,
+            msg: "OTP_SENT_SUCCESS",
         });
+
+        console.log(`Send otp for ${email}: ${otp}`);
+
+        // Gửi email bất đồng bộ
+        sendOtpEmail(email, otp).catch(err => {
+            console.error(`Failed to send OTP email to ${email}`, err);
+        });
+
     } catch (error) {
         console.error("sendOtp error:", error);
-        return res.status(500).json({ success: false, message: "Failed to send OTP" });
+        return baseResponse(res, { 
+            success: false, 
+            statusCode: 400,
+            msg: "OTP_SEND_FAILED" 
+        });
     }
-}
+};
 
 module.exports = { sendOtp };
