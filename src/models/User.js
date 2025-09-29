@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
+const OTP_EXPIRES_MS = parseInt(process.env.SESSION_ID_EXPIRES_MS) || 259200000; // 3 ngày
+
 const userSchema = new Schema(
     {
         fullName: {
@@ -11,6 +13,9 @@ const userSchema = new Schema(
             type: String,
             required: true,
             unique: true,
+        },
+        avatar: {
+            type: String,
         },
         email: {
             type: String,
@@ -24,6 +29,11 @@ const userSchema = new Schema(
             type: String,
             unique: true,
         },
+        expires_at: {
+            type: Date,
+            required: true,
+            default: () => new Date(Date.now() + OTP_EXPIRES_MS)
+        },
         isVerified: {
             type: Boolean,
             default: false,
@@ -32,6 +42,12 @@ const userSchema = new Schema(
             type: Schema.Types.Mixed, // Cho phép mọi kiểu dữ liệu object (tùy ý)
             default: {},
         },
+        friends: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: "User", // tham chiếu đến chính model User
+            }
+        ],
     },
     {
         timestamps: true,
@@ -41,6 +57,15 @@ const userSchema = new Schema(
 userSchema.statics.findByEmail = function(email) {
     return this.findOne({ email: email });
 };
+userSchema.statics.findBySessionId = function(sessionId) {
+    return this.findOne({ sessionId: sessionId });
+};
+userSchema.statics.findByPhone = function(phone) {
+    return this.findOne({ phone: phone });
+};
+
+// Index để tự động xóa document hết hạn
+userSchema.index({ expires_at: 1 }, { expireAfterSeconds: 0 });
 
 const User = mongoose.model("User", userSchema);
 module.exports = User;

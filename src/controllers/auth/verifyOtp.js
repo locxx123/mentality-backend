@@ -44,6 +44,7 @@ const verifyOtp = async (req, res) => {
             phone,
             password: hashedPassword,
             sessionId,
+            avatar: `https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png`,
             isVerified: true,
         });
         await user.save();
@@ -52,7 +53,7 @@ const verifyOtp = async (req, res) => {
         // Xóa OTP cũ bất đồng bộ (không block response)
         Otp.deleteMany({
             email,
-            $or: [{ is_used: true }, { expires_at: { $lte: new Date() } }]
+            $or: [{ is_used: true }]
         }).catch(err => console.error("Delete old OTP error:", err));
 
         // Trả response ngay lập tức
