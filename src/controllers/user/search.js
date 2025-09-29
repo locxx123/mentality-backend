@@ -20,16 +20,27 @@ const search = async (req, res) => {
             msg = "NOT_REGISTERED"
         } else {
             // Đã đăng ký
-            const isFriend = currentUser.friends?.some(
-                (friendId) => friendId.toString() === foundUser._id.toString()
+            const friendObj = currentUser.friends?.find(
+                (friend) => friend.userId?.toString() === foundUser._id.toString()
             );
 
+            let isFriend = false;
+            let isPending = false;
+
+            if (friendObj) {
+                if (friendObj.status === "accepted") {
+                    isFriend = true;
+                } else if (friendObj.status === "pending") {
+                    isPending = true;
+                }
+            }
+
             if (isFriend) {
-                // Trường hợp 1: đã đăng ký & đã kết bạn
-                msg = "REGISTERED_AND_FRIEND"
+                msg = "REGISTERED_AND_FRIEND";
+            } else if (isPending) {
+                msg = "REGISTERED_AND_PENDING";
             } else {
-                // Trường hợp 2: đã đăng ký & chưa kết bạn
-                msg = "REGISTERED_NOT_FRIEND"
+                msg = "REGISTERED_NOT_FRIEND";
             }
             result = {
                 user: {
@@ -37,6 +48,8 @@ const search = async (req, res) => {
                     fullName: foundUser.fullName,
                     phone: foundUser.phone,
                     avatar: foundUser.avatar,
+                    isFriend,
+                    isPending
                 },
             }
         }

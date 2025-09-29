@@ -44,23 +44,38 @@ const userSchema = new Schema(
         },
         friends: [
             {
-                type: Schema.Types.ObjectId,
-                ref: "User", // tham chiếu đến chính model User
+                userId: {
+                    type: Schema.Types.ObjectId,
+                    ref: "User", // id của user
+                    required: true,
+                },
+                status: {
+                    type: String,
+                    enum: ["pending", "accepted", "declined"],
+                    default: "pending",
+                },
+                invitedAt: {
+                    type: Date,
+                    default: Date.now,
+                },
+                acceptedAt: {
+                    type: Date,
+                }
             }
-        ],
+        ]
     },
     {
         timestamps: true,
     }
 );
 
-userSchema.statics.findByEmail = function(email) {
+userSchema.statics.findByEmail = function (email) {
     return this.findOne({ email: email });
 };
-userSchema.statics.findBySessionId = function(sessionId) {
+userSchema.statics.findBySessionId = function (sessionId) {
     return this.findOne({ sessionId: sessionId });
 };
-userSchema.statics.findByPhone = function(phone) {
+userSchema.statics.findByPhone = function (phone) {
     return this.findOne({ phone: phone });
 };
 

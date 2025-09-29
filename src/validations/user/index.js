@@ -7,6 +7,13 @@ const searchSchema = z.object({
     }),
 });
 
+const addFriendSchema = z.object({
+    body: z.object({
+        phone: z.string().length(10, { message: "Phone number must be 10 digits" }),
+    }),
+});
+
 module.exports = {
-    searchSchema
+    searchSchema,
+    addFriendSchema
 };

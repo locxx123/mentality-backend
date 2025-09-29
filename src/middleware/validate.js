@@ -7,7 +7,7 @@ const validate = (schema) => {
             query: req.query,
             params: req.params,
         });
-        console.log("Validation result:", result);
+        console.log("Validation result:", result.error);
 
         if (!result.success) {
             return baseResponse(res, {
