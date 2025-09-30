@@ -4,8 +4,8 @@ const express = require("express");
 const cors = require("cors");
 const { connectDB } = require("./src/config/database");
 const routes = require("./src/routes/index");
+const { server, app } = require("./src/lib/socket");
 
-const app = express();
 const port = 3000;
 
 // 1. Kết nối MongoDB
@@ -23,6 +23,6 @@ app.use(express.json());
 app.use('/api/v1', routes);
 
 // 5. Khởi động server
-app.listen(port, () => {
+server.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
 });

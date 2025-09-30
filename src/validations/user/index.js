@@ -12,8 +12,15 @@ const addFriendSchema = z.object({
         phone: z.string().length(10, { message: "Phone number must be 10 digits" }),
     }),
 });
+const updateFriendRequestSchema = z.object({
+    body: z.object({
+        requestId: z.string().min(1, { message: "RequestId is required" }),
+        action: z.enum(["accepted", "decline"], { message: "Action must be accept or decline" }),
+    }),
+});
 
 module.exports = {
     searchSchema,
-    addFriendSchema
+    addFriendSchema,
+    updateFriendRequestSchema
 };

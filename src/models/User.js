@@ -41,28 +41,7 @@ const userSchema = new Schema(
         profile: {
             type: Schema.Types.Mixed, // Cho phép mọi kiểu dữ liệu object (tùy ý)
             default: {},
-        },
-        friends: [
-            {
-                userId: {
-                    type: Schema.Types.ObjectId,
-                    ref: "User", // id của user
-                    required: true,
-                },
-                status: {
-                    type: String,
-                    enum: ["pending", "accepted", "declined"],
-                    default: "pending",
-                },
-                invitedAt: {
-                    type: Date,
-                    default: Date.now,
-                },
-                acceptedAt: {
-                    type: Date,
-                }
-            }
-        ]
+        }
     },
     {
         timestamps: true,

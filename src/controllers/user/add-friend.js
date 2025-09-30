@@ -1,5 +1,7 @@
 const User = require("@models/User");
+const FriendRequest = require("@models/FriendRequest");
 const { baseResponse } = require("@src/config/response");
+const { getReceiverSocketId, io } = require("@src/lib/socket");
 
 const addFriend = async (req, res) => {
     try {
@@ -26,10 +28,15 @@ const addFriend = async (req, res) => {
             });
         }
 
-        // Kiểm tra đã là bạn hoặc đã gửi lời mời chưa
-        const existed = currentUser.friends?.find(
-            (f) => f.userId?.toString() === friendUser._id.toString()
-        );
+        // Kiểm tra đã có lời mời kết bạn chưa (cả 2 chiều)
+        const existed = await FriendRequest.findOne({
+            $or: [
+                { sender: currentUser._id, receiver: friendUser._id },
+                { sender: friendUser._id, receiver: currentUser._id }
+            ],
+            status: { $in: ["pending", "accepted"] }
+        });
+
         if (existed) {
             return baseResponse(res, {
                 success: false,
@@ -38,13 +45,23 @@ const addFriend = async (req, res) => {
             });
         }
 
-        // Thêm lời mời kết bạn
-        currentUser.friends.push({
-            userId: friendUser._id,
+        // Tạo lời mời kết bạn mới
+        const newRequest = await FriendRequest.create({
+            sender: currentUser._id,
+            receiver: friendUser._id,
             status: "pending",
-            invitedAt: new Date(),
+            invitedAt: new Date()
         });
-        await currentUser.save();
+
+        // Lấy thông tin chi tiết 
+        const populatedRequest = await FriendRequest.findById(newRequest._id)
+            .populate("sender", "fullName phone avatar");
+
+        // Bắn về socket cho người nhận
+        const receiverSocketId = getReceiverSocketId(friendUser._id);
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("new-friend-request", populatedRequest);
+        }
 
         return baseResponse(res, {
             success: true,

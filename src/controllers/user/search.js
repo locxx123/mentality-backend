@@ -1,36 +1,40 @@
 const User = require("@models/User");
+const FriendRequest = require("@models/FriendRequest");
 const { baseResponse } = require("@src/config/response");
 
 const search = async (req, res) => {
     try {
-        const currentUser = req.user; // user đang đăng nhập
+        const currentUser = req.user;
         const { phone } = req.query;
 
         // Tìm user theo phone
-        const foundUser = await User.findByPhone(phone)
+        const foundUser = await User.findByPhone(phone);
 
         let result;
         let msg;
 
         if (!foundUser) {
             // Trường hợp 3: chưa đăng ký
-            result = {
-                phone: phone,
-            }
-            msg = "NOT_REGISTERED"
+            result = { phone: phone };
+            msg = "NOT_REGISTERED";
         } else {
             // Đã đăng ký
-            const friendObj = currentUser.friends?.find(
-                (friend) => friend.userId?.toString() === foundUser._id.toString()
-            );
+            // Tìm mối quan hệ bạn bè giữa currentUser và foundUser
+            const friendRequest = await FriendRequest.findOne({
+                $or: [
+                    { sender: currentUser._id, receiver: foundUser._id },
+                    { sender: foundUser._id, receiver: currentUser._id }
+                ],
+                status: { $in: ["pending", "accepted"] }
+            });
 
             let isFriend = false;
             let isPending = false;
 
-            if (friendObj) {
-                if (friendObj.status === "accepted") {
+            if (friendRequest) {
+                if (friendRequest.status === "accepted") {
                     isFriend = true;
-                } else if (friendObj.status === "pending") {
+                } else if (friendRequest.status === "pending") {
                     isPending = true;
                 }
             }
@@ -51,7 +55,7 @@ const search = async (req, res) => {
                     isFriend,
                     isPending
                 },
-            }
+            };
         }
 
         return baseResponse(res, {
@@ -70,6 +74,4 @@ const search = async (req, res) => {
     }
 };
 
-module.exports = {
-    search,
-};
+module.exports = { search };
