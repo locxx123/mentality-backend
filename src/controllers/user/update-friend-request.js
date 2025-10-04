@@ -43,7 +43,7 @@ const updateFriendRequest = async (req, res) => {
             const acceptedUser = await User.findById(currentUser._id).select("fullName phone avatar");
             const senderSocketId = getReceiverSocketId(friendRequest.sender);
             if (senderSocketId) {
-                io.to(senderSocketId).emit("after-accepted",
+                io.to(senderSocketId).emit("friend:request:accepted",
                     {
                         id: acceptedUser._id,
                         fullName: acceptedUser.fullName,

@@ -9,6 +9,7 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 export function getReceiverSocketId(userId) {
+    console.log("Getting socketId for userId: ", userId, " socketId: ", userSocketMap);
     return userSocketMap[userId];
 }
 

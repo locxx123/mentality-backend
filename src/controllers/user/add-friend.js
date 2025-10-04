@@ -60,7 +60,7 @@ const addFriend = async (req, res) => {
         // Bắn về socket cho người nhận
         const receiverSocketId = getReceiverSocketId(friendUser._id);
         if (receiverSocketId) {
-            io.to(receiverSocketId).emit("new-friend-request", populatedRequest);
+            io.to(receiverSocketId).emit("friend:request:new", populatedRequest);
         }
 
         return baseResponse(res, {
