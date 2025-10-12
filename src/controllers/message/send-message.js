@@ -1,6 +1,7 @@
 const { baseResponse } = require("@src/config/response");
 const { getReceiverSocketId, io } = require("@src/lib/socket");
 const Message = require("@src/models/Message");
+
 const sendMessage = async (req, res) => {
     try {
         const { text, image } = req.body;
@@ -8,11 +9,10 @@ const sendMessage = async (req, res) => {
         const senderId = req.user._id;
 
         let imageUrl;
+        // Nếu sau này bạn upload ảnh:
         // if (image) {
-        //     // Upload base64 image to cloudinary
-        //     const uploadResponse = await cloudinary.uploader.upload(image);
-        //     imageUrl = uploadResponse.secure_url;
-        //     console.log("Image uploaded to Cloudinary: ", imageUrl);
+        //   const uploadResponse = await cloudinary.uploader.upload(image);
+        //   imageUrl = uploadResponse.secure_url;
         // }
 
         const newMessage = new Message({
@@ -22,26 +22,41 @@ const sendMessage = async (req, res) => {
             image: imageUrl,
         });
 
-
         await newMessage.save();
 
+        // Định dạng lại dữ liệu trả về
+        const formattedMessage = {
+            id: newMessage._id,  // đổi từ _id → id
+            senderId: newMessage.senderId,
+            receiverId: newMessage.receiverId,
+            text: newMessage.text,
+            image: newMessage.image,
+            createdAt: newMessage.createdAt,
+            updatedAt: newMessage.updatedAt,
+        };
+
+        console.log("Formatted Message:", formattedMessage);
+
+        // Gửi tin nhắn qua socket nếu người nhận đang online
         const receiverSocketId = getReceiverSocketId(receiverId);
         if (receiverSocketId) {
-            console.log("Emitting newMessage to socketId: ", receiverSocketId);
-            io.to(receiverSocketId).emit("newMessage", newMessage);
+            console.log("Emitting newMessage to socketId:", receiverSocketId);
+            io.to(receiverSocketId).emit("newMessage", formattedMessage);
         }
 
+        // Trả response về client
         return baseResponse(res, {
             success: true,
             statusCode: 200,
             msg: "MESSAGE_SENT",
-            data: newMessage,
+            data: formattedMessage,
         });
     } catch (error) {
-        console.log("Error in sendMessage controller: ", error.message);
+        console.log("Error in sendMessage controller:", error.message);
         res.status(500).json({ error: "Internal server error" });
     }
 };
+
 module.exports = {
-    sendMessage
+    sendMessage,
 };

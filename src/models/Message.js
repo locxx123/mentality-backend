@@ -19,7 +19,16 @@ const messageSchema = new mongoose.Schema(
             type: String,
         },
     },
-    { timestamps: true }
+    {
+        timestamps: true,
+        toJSON: {
+            transform(doc, ret) {
+                ret.id = ret._id.toString(); // chuyển ObjectId thành string
+                delete ret._id;
+                delete ret.__v;
+            },
+        }
+    }
 );
 
 const Message = mongoose.model("Message", messageSchema);

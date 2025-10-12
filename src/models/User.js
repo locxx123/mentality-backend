@@ -45,6 +45,14 @@ const userSchema = new Schema(
     },
     {
         timestamps: true,
+        toJSON: {
+            transform(doc, ret) {
+                ret.id = ret._id.toString(); // chuyển ObjectId thành string
+                delete ret._id;
+                delete ret.__v;
+                delete ret.password; // ẩn password khi trả về client
+            }
+        }
     }
 );
 
@@ -59,7 +67,7 @@ userSchema.statics.findByPhone = function (phone) {
 };
 
 // Index để tự động xóa document hết hạn
-userSchema.index({ expires_at: 1 }, { expireAfterSeconds: 0 });
+// userSchema.index({ expires_at: 1 }, { expireAfterSeconds: 0 });
 
 const User = mongoose.model("User", userSchema);
 module.exports = User;
