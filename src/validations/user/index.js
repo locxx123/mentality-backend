@@ -19,8 +19,22 @@ const updateFriendRequestSchema = z.object({
     }),
 });
 
+const updateProfileSchema = z.object({
+    body: z.object({
+        fullName: z.string().min(2).optional(),
+        avatar: z.string().url().optional(),
+        bio: z.string().max(200).optional() // Giới hạn bio 200 ký tự
+    }).refine(
+        (data) => Object.keys(data).length > 0,
+        {
+            message: "At least one field must be provided for update"
+        }
+    )
+});
+
 module.exports = {
     searchSchema,
     addFriendSchema,
-    updateFriendRequestSchema
+    updateFriendRequestSchema,
+    updateProfileSchema
 };

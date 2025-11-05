@@ -1,6 +1,7 @@
 const { baseResponse } = require("@src/config/response");
 const { getReceiverSocketId, io } = require("@src/lib/socket");
 const Message = require("@src/models/Message");
+const cloudinary = require("@src/lib/cloudinary").default;
 
 const sendMessage = async (req, res) => {
     try {
@@ -9,11 +10,15 @@ const sendMessage = async (req, res) => {
         const senderId = req.user._id;
 
         let imageUrl;
-        // Nếu sau này bạn upload ảnh:
-        // if (image) {
-        //   const uploadResponse = await cloudinary.uploader.upload(image);
-        //   imageUrl = uploadResponse.secure_url;
-        // }
+        // Upload ảnh base64 (data URL) lên Cloudinary nếu client gửi kèm "image"
+        if (image) {
+            const uploadResponse = await cloudinary.uploader.upload(image, {
+                folder: "chat",
+                resource_type: "image",
+            });
+            imageUrl = uploadResponse.secure_url;
+        }
+        console.log("Image uploaded to Cloudinary:", imageUrl);
 
         const newMessage = new Message({
             senderId,
@@ -34,8 +39,6 @@ const sendMessage = async (req, res) => {
             createdAt: newMessage.createdAt,
             updatedAt: newMessage.updatedAt,
         };
-
-        console.log("Formatted Message:", formattedMessage);
 
         // Gửi tin nhắn qua socket nếu người nhận đang online
         const receiverSocketId = getReceiverSocketId(receiverId);

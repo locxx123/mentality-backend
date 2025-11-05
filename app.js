@@ -16,8 +16,8 @@ app.use(cors({
     credentials: true
 }));
 
-// 3. Cấu hình parse JSON body
-app.use(express.json());
+// 3. Cấu hình parse JSON body (tăng limit để nhận base64 image)
+app.use(express.json({ limit: '15mb' }));
 
 // 4. Khai báo route chính
 app.use('/api/v1', routes);
