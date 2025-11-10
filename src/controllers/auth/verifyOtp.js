@@ -53,13 +53,13 @@ const verifyOtp = async (req, res) => {
 
         // Tạo access token và refresh token
         const accessToken = jwt.sign(
-            { userId: user._id, email: user.email },
+            { userId: user._id.toString(), email: user.email },
             process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRES_IN || '15m' }
         );
 
         const refreshTokenValue = jwt.sign(
-            { userId: user._id, email: user.email, type: 'refresh' },
+            { userId: user._id.toString(), email: user.email, type: 'refresh' },
             process.env.JWT_REFRESH_SECRET,
             { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' }
         );

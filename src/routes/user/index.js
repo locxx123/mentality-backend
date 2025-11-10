@@ -4,10 +4,10 @@ const validate = require("@src/middleware/validate");
 const authMiddleware = require("@src/middleware/auth");
 
 const { updateProfileSchema } = require("@src/validations/user");
-const { getProfile } = require("@src/controllers/user/get-profile");
 const { updateProfile } = require("@src/controllers/user/update-profile");
+const { getProfile } = require("@src/controllers/auth/me");
 
-router.get("/user/profile", authMiddleware, getProfile);
+router.get("/auth/me", authMiddleware, getProfile);
 router.put("/user/profile", authMiddleware, validate(updateProfileSchema), updateProfile);
 
 module.exports = router;

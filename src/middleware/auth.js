@@ -4,14 +4,12 @@ const { baseResponse } = require("@src/config/response");
 
 const authMiddleware = async (req, res, next) => {
     try {
-        let sessionId = "";
-        const authHeader = req.headers['authorization'];
-        if (authHeader && authHeader.startsWith('Bearer ')) {
-            sessionId = authHeader.replace('Bearer ', '').trim();
-        }
+        // Đọc accessToken từ cookie
+        const accessToken = req.cookies?.accessToken;
+        const refreshToken = req.cookies?.refreshToken;
 
-        // Kiểm tra có sessionId không
-        if (!sessionId) {
+        // Nếu không có cả accessToken và refreshToken
+        if (!accessToken && !refreshToken) {
             return baseResponse(res, {
                 success: false,
                 statusCode: 401,
@@ -19,20 +17,105 @@ const authMiddleware = async (req, res, next) => {
             });
         }
 
-        // Tìm user theo sessionId
-        const user = await User.findBySessionId(sessionId);
+        let decoded;
+        let user;
 
-        if (!user) {
-            return baseResponse(res, {
-                success: false,
-                statusCode: 401,
-                msg: "Phiên đăng nhập không hợp lệ",
-            });
+        // Kiểm tra accessToken trước
+        if (accessToken) {
+            try {
+                // Verify accessToken
+                decoded = jwt.verify(accessToken, process.env.JWT_SECRET);
+                
+                // Tìm user theo userId từ token
+                user = await User.findById(decoded.userId);
+                console.log("user Access Token:", user);
+                
+                if (!user) {
+                    return baseResponse(res, {
+                        success: false,
+                        statusCode: 401,
+                        msg: "Người dùng không tồn tại",
+                    });
+                }
+
+                // AccessToken còn hạn, gắn user vào request
+                req.user = user;
+                return next();
+            } catch (error) {
+                // Nếu accessToken hết hạn hoặc không hợp lệ
+                if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {
+                    // Tiếp tục kiểm tra refreshToken
+                } else {
+                    throw error;
+                }
+            }
         }
 
-        // Gắn thông tin user vào req
-        req.user = user;
-        next();
+        // Nếu accessToken hết hạn hoặc không có, kiểm tra refreshToken
+        if (refreshToken) {
+            try {
+                // Verify refreshToken
+                decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+                
+                // Kiểm tra type của token
+                if (decoded.type !== 'refresh') {
+                    return baseResponse(res, {
+                        success: false,
+                        statusCode: 401,
+                        msg: "Token không hợp lệ",
+                    });
+                }
+
+                // Tìm user theo userId từ refreshToken
+                user = await User.findById(decoded.userId);
+                
+                if (!user) {
+                    return baseResponse(res, {
+                        success: false,
+                        statusCode: 401,
+                        msg: "Người dùng không tồn tại",
+                    });
+                }
+
+                // RefreshToken còn hạn, tạo accessToken mới
+                const newAccessToken = jwt.sign(
+                    { userId: user._id, email: user.email },
+                    process.env.JWT_SECRET,
+                    { expiresIn: process.env.JWT_EXPIRES_IN || '15m' }
+                );
+
+                // Set accessToken mới vào cookie
+                const isProduction = process.env.NODE_ENV === 'production';
+                res.cookie('accessToken', newAccessToken, {
+                    httpOnly: true,
+                    secure: isProduction,
+                    sameSite: 'lax',
+                    maxAge: 15 * 60 * 1000 // 15 phút
+                });
+
+                // Gắn user vào request
+                req.user = user;
+                return next();
+            } catch (error) {
+                // RefreshToken cũng hết hạn hoặc không hợp lệ
+                if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {
+                    return baseResponse(res, {
+                        success: false,
+                        statusCode: 401,
+                        msg: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại",
+                    });
+                } else {
+                    throw error;
+                }
+            }
+        }
+
+        // Nếu không có cả accessToken và refreshToken hợp lệ
+        return baseResponse(res, {
+            success: false,
+            statusCode: 401,
+            msg: "Bạn chưa đăng nhập",
+        });
 
     } catch (error) {
         console.error('Auth middleware error:', error);

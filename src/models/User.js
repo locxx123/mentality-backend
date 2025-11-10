@@ -9,11 +9,6 @@ const userSchema = new Schema(
             type: String,
             trim: true,
         },
-        bio: {
-            type: String,
-            maxLength: 200,
-            default: ""
-        },
         avatar: {
             type: String,
         },
