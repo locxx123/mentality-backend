@@ -1,123 +1,192 @@
 const Emotion = require("@models/Emotion");
 const { baseResponse } = require("@src/config/response");
 
+// Emotion config matching frontend
+const EMOTION_CONFIG = {
+    happy: { emoji: "😊", label: "Vui vẻ", category: "positive" },
+    sad: { emoji: "😔", label: "Buồn", category: "negative" },
+    loved: { emoji: "😍", label: "Yêu thích", category: "positive" },
+    anxious: { emoji: "😰", label: "Lo lắng", category: "negative" },
+    angry: { emoji: "😠", label: "Tức giận", category: "negative" },
+    tired: { emoji: "😴", label: "Mệt mỏi", category: "neutral" },
+    calm: { emoji: "😌", label: "Bình tĩnh", category: "positive" },
+    confused: { emoji: "😕", label: "Bối rối", category: "neutral" },
+};
+
+const EMOTION_ORDER = ['happy', 'calm', 'loved', 'anxious', 'tired', 'angry', 'sad', 'confused'];
+
 const getTrends = async (req, res) => {
     try {
         const userId = req.user._id;
         const { period = 'week' } = req.query; // week, month, year
 
         let startDate = new Date();
-        let groupBy = '%Y-%m-%d'; // Default: group by day
+        let previousPeriodStartDate = new Date();
 
         switch (period) {
             case 'week':
                 startDate.setDate(startDate.getDate() - 7);
-                groupBy = '%Y-%m-%d';
+                previousPeriodStartDate.setDate(previousPeriodStartDate.getDate() - 14);
                 break;
             case 'month':
                 startDate.setMonth(startDate.getMonth() - 1);
-                groupBy = '%Y-%m-%d';
+                previousPeriodStartDate.setMonth(previousPeriodStartDate.getMonth() - 2);
                 break;
             case 'year':
                 startDate.setFullYear(startDate.getFullYear() - 1);
-                groupBy = '%Y-%m';
+                previousPeriodStartDate.setFullYear(previousPeriodStartDate.getFullYear() - 2);
                 break;
         }
 
-        // Get emotions in the period
-        const emotions = await Emotion.find({
-            userId,
-            date: { $gte: startDate },
-        }).sort({ date: 1 });
+        // Get emotions in current and previous period for trend comparison
+        const [currentEmotions, previousEmotions] = await Promise.all([
+            Emotion.find({
+                userId,
+                date: { $gte: startDate },
+            }).sort({ date: 1 }),
+            Emotion.find({
+                userId,
+                date: { $gte: previousPeriodStartDate, $lt: startDate },
+            }).sort({ date: 1 }),
+        ]);
 
-        // Calculate statistics
+        // Calculate emotion counts for current period
         const emotionCounts = {};
         const moodRatings = [];
         const emotionByType = {};
 
-        emotions.forEach(emotion => {
-            // Count by type
+        currentEmotions.forEach(emotion => {
             emotionCounts[emotion.emotionType] = (emotionCounts[emotion.emotionType] || 0) + 1;
-            
-            // Collect mood ratings
             moodRatings.push(emotion.moodRating);
-            
-            // Group by type
             if (!emotionByType[emotion.emotionType]) {
                 emotionByType[emotion.emotionType] = [];
             }
             emotionByType[emotion.emotionType].push(emotion.moodRating);
         });
 
-        // Calculate averages
+        // Calculate previous period counts for trends
+        const previousEmotionCounts = {};
+        previousEmotions.forEach(emotion => {
+            previousEmotionCounts[emotion.emotionType] = (previousEmotionCounts[emotion.emotionType] || 0) + 1;
+        });
+
+        const totalEmotions = currentEmotions.length;
         const averageMood = moodRatings.length > 0
-            ? (moodRatings.reduce((a, b) => a + b, 0) / moodRatings.length).toFixed(2)
+            ? parseFloat((moodRatings.reduce((a, b) => a + b, 0) / moodRatings.length).toFixed(2))
             : 0;
 
-        // Calculate positive vs negative
-        const positiveEmotions = ['happy', 'excited', 'calm', 'grateful'];
-        const negativeEmotions = ['sad', 'anxious', 'stressed', 'angry', 'lonely', 'tired'];
-        
+        // Calculate positive, negative, neutral counts
         let positiveCount = 0;
         let negativeCount = 0;
-        
+        let neutralCount = 0;
+
         Object.keys(emotionCounts).forEach(type => {
-            if (positiveEmotions.includes(type)) {
-                positiveCount += emotionCounts[type];
-            } else if (negativeEmotions.includes(type)) {
-                negativeCount += emotionCounts[type];
+            const config = EMOTION_CONFIG[type];
+            if (config) {
+                if (config.category === 'positive') {
+                    positiveCount += emotionCounts[type];
+                } else if (config.category === 'negative') {
+                    negativeCount += emotionCounts[type];
+                } else {
+                    neutralCount += emotionCounts[type];
+                }
             }
         });
+
+        // Build emotion stats with trends
+        const emotionStats = EMOTION_ORDER.map(type => {
+            const config = EMOTION_CONFIG[type];
+            const count = emotionCounts[type] || 0;
+            const previousCount = previousEmotionCounts[type] || 0;
+            const trend = count - previousCount;
+            const percentage = totalEmotions > 0 ? Math.round((count / totalEmotions) * 100) : 0;
+
+            return {
+                emotion: config.label,
+                emoji: config.emoji,
+                count,
+                percentage,
+                trend,
+            };
+        }).filter(stat => stat.count > 0); // Only show emotions that have records
+
+        // Group by date for daily mood chart
+        const dailyMoodData = {};
+        const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+
+        currentEmotions.forEach(emotion => {
+            const date = new Date(emotion.date);
+            const dayOfWeek = date.getDay();
+            const dayName = dayNames[dayOfWeek];
+            const config = EMOTION_CONFIG[emotion.emotionType];
+
+            if (!dailyMoodData[dayName]) {
+                dailyMoodData[dayName] = { date: dayName, positive: 0, neutral: 0, negative: 0 };
+            }
+
+            if (config) {
+                if (config.category === 'positive') {
+                    dailyMoodData[dayName].positive++;
+                } else if (config.category === 'negative') {
+                    dailyMoodData[dayName].negative++;
+                } else {
+                    dailyMoodData[dayName].neutral++;
+                }
+            }
+        });
+
+        // Convert to array and ensure all days are present
+        const dailyMoodArray = dayNames.map(dayName => 
+            dailyMoodData[dayName] || { date: dayName, positive: 0, neutral: 0, negative: 0 }
+        );
 
         // Generate insights
         const insights = [];
-        if (negativeCount > positiveCount * 1.5) {
-            insights.push("Tuần này bạn có nhiều ngày căng thẳng hơn bình thường. Hãy thử các kỹ thuật thư giãn như thiền hoặc hít thở sâu.");
-        } else if (positiveCount > negativeCount * 1.5) {
-            insights.push("Bạn đang có một tuần tích cực! Hãy tiếp tục duy trì tinh thần tốt này.");
-        }
-
-        if (parseFloat(averageMood) < 2.5) {
-            insights.push("Mood rating trung bình của bạn khá thấp. Hãy cân nhắc thử các hoạt động nâng cao tinh thần như thể dục, gặp gỡ bạn bè, hoặc đọc sách.");
-        }
-
-        // Group by date for chart
-        const chartData = {};
-        emotions.forEach(emotion => {
-            const dateKey = emotion.date.toISOString().split('T')[0];
-            if (!chartData[dateKey]) {
-                chartData[dateKey] = { date: dateKey, moodRatings: [], emotions: [] };
+        if (totalEmotions === 0) {
+            insights.push("Bạn chưa có dữ liệu cảm xúc trong khoảng thời gian này. Hãy bắt đầu ghi lại cảm xúc của bạn!");
+        } else {
+            if (negativeCount > positiveCount * 1.5) {
+                insights.push(`Tuần này bạn có nhiều ngày căng thẳng hơn bình thường (${negativeCount} cảm xúc tiêu cực). Hãy thử các kỹ thuật thư giãn như thiền hoặc hít thở sâu.`);
+            } else if (positiveCount > negativeCount * 1.5) {
+                insights.push(`Bạn đang có một tuần tích cực! (${positiveCount} cảm xúc tích cực). Hãy tiếp tục duy trì tinh thần tốt này.`);
             }
-            chartData[dateKey].moodRatings.push(emotion.moodRating);
-            chartData[dateKey].emotions.push(emotion.emotionType);
-        });
 
-        const chartDataArray = Object.values(chartData).map(item => ({
-            date: item.date,
-            averageMood: (item.moodRatings.reduce((a, b) => a + b, 0) / item.moodRatings.length).toFixed(2),
-            emotionCount: item.emotions.length,
-        }));
+            if (averageMood < 2.5) {
+                insights.push("Mood rating trung bình của bạn khá thấp. Hãy cân nhắc thử các hoạt động nâng cao tinh thần như thể dục, gặp gỡ bạn bè, hoặc đọc sách.");
+            } else if (averageMood > 3.5) {
+                insights.push("Mood rating trung bình của bạn khá tốt! Hãy tiếp tục duy trì những hoạt động tích cực.");
+            }
+
+            // Find most common emotion
+            const mostCommon = emotionStats.length > 0 
+                ? emotionStats.reduce((max, stat) => stat.count > max.count ? stat : max, emotionStats[0])
+                : null;
+            
+            if (mostCommon && mostCommon.count > 0) {
+                insights.push(`Cảm xúc "${mostCommon.emotion}" xuất hiện nhiều nhất (${mostCommon.count} lần) trong khoảng thời gian này.`);
+            }
+        }
 
         return baseResponse(res, {
             success: true,
             statusCode: 200,
             data: {
                 period,
-                startDate,
                 statistics: {
-                    totalEmotions: emotions.length,
-                    averageMood: parseFloat(averageMood),
-                    emotionCounts,
+                    totalEmotions,
+                    averageMood,
                     positiveCount,
                     negativeCount,
-                    positivePercentage: emotions.length > 0 
-                        ? ((positiveCount / emotions.length) * 100).toFixed(2) 
+                    neutralCount,
+                    positivePercentage: totalEmotions > 0 
+                        ? Math.round((positiveCount / totalEmotions) * 100) 
                         : 0,
-                    negativePercentage: emotions.length > 0 
-                        ? ((negativeCount / emotions.length) * 100).toFixed(2) 
+                    negativePercentage: totalEmotions > 0 
+                        ? Math.round((negativeCount / totalEmotions) * 100) 
                         : 0,
                 },
-                chartData: chartDataArray,
+                emotionStats,
+                dailyMoodData: dailyMoodArray,
                 insights,
             },
             msg: "GET_TRENDS_SUCCESS",

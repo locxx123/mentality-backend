@@ -1,5 +1,6 @@
 const Emotion = require("@models/Emotion");
 const { baseResponse } = require("@src/config/response");
+const { transformEmotion } = require("@src/utils/transformEmotion");
 
 const getEmotionById = async (req, res) => {
     try {
@@ -16,10 +17,12 @@ const getEmotionById = async (req, res) => {
             });
         }
 
+        const normalizedEmotion = transformEmotion(emotion);
+
         return baseResponse(res, {
             success: true,
             statusCode: 200,
-            data: emotion,
+            data: normalizedEmotion,
             msg: "GET_EMOTION_SUCCESS",
         });
 

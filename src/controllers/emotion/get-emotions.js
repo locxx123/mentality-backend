@@ -1,5 +1,6 @@
 const Emotion = require("@models/Emotion");
 const { baseResponse } = require("@src/config/response");
+const { transformEmotion } = require("@src/utils/transformEmotion");
 
 const getEmotions = async (req, res) => {
     try {
@@ -34,11 +35,13 @@ const getEmotions = async (req, res) => {
             Emotion.countDocuments(query),
         ]);
 
+        const normalizedEmotions = emotions.map(transformEmotion);
+
         return baseResponse(res, {
             success: true,
             statusCode: 200,
             data: {
-                emotions,
+                emotions: normalizedEmotions,
                 pagination: {
                     page: parseInt(page),
                     limit: parseInt(limit),

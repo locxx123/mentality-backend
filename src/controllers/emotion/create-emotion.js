@@ -1,28 +1,40 @@
 const Emotion = require("@models/Emotion");
 const { baseResponse } = require("@src/config/response");
+const { transformEmotion } = require("@src/utils/transformEmotion");
 
 const createEmotion = async (req, res) => {
     try {
-        const { emotionType, moodRating, journalEntry, tags, emoji } = req.body;
+        const {
+            emotion,
+            emotionType,
+            intensity,
+            moodRating,
+            description,
+            journalEntry,
+            tags,
+            emoji,
+        } = req.body;
         const userId = req.user._id;
 
-        const emotion = new Emotion({
+        const emotionRecord = new Emotion({
             userId,
-            emotionType,
-            moodRating,
-            journalEntry: journalEntry || "",
+            emotionType: emotion || emotionType,
+            moodRating: intensity ?? moodRating,
+            journalEntry: description ?? journalEntry ?? "",
             tags: tags || [],
             emoji: emoji || "",
             date: new Date(),
         });
 
-        await emotion.save();
+        await emotionRecord.save();
+
+        const normalizedEmotion = transformEmotion(emotionRecord);
 
         return baseResponse(res, {
             success: true,
             statusCode: 201,
-            data: emotion,
-            msg: "EMOTION_CREATED_SUCCESS",
+            data: normalizedEmotion,
+            msg: "Ghi nhận cảm xúc thành công",
         });
 
     } catch (error) {
@@ -30,7 +42,7 @@ const createEmotion = async (req, res) => {
         return baseResponse(res, {
             success: false,
             statusCode: 500,
-            msg: "SERVER_ERROR",
+            msg: "Lỗi server, vui lòng thử lại sau",
         });
     }
 };

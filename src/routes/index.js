@@ -7,5 +7,6 @@ router.use(require("./chat"));
 router.use(require("./analytics"));
 router.use(require("./resources"));
 router.use(require("./user"));
+router.use(require("./dashboard"));
 
 module.exports = router;

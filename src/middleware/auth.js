@@ -28,7 +28,6 @@ const authMiddleware = async (req, res, next) => {
                 
                 // Tìm user theo userId từ token
                 user = await User.findById(decoded.userId);
-                console.log("user Access Token:", user);
                 
                 if (!user) {
                     return baseResponse(res, {

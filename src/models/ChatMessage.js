@@ -9,6 +9,12 @@ const chatMessageSchema = new Schema(
             required: true,
             index: true,
         },
+        sessionId: {
+            type: Schema.Types.ObjectId,
+            ref: "ChatSession",
+            required: true,
+            index: true,
+        },
         message: {
             type: String,
             required: true,
@@ -45,8 +51,9 @@ const chatMessageSchema = new Schema(
     }
 );
 
-// Index để query conversation theo userId
+// Index để query conversation theo userId và sessionId
 chatMessageSchema.index({ userId: 1, createdAt: -1 });
+chatMessageSchema.index({ sessionId: 1, createdAt: -1 });
 
 const ChatMessage = mongoose.model("ChatMessage", chatMessageSchema);
 module.exports = ChatMessage;

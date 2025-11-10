@@ -1,15 +1,25 @@
 const Emotion = require("@models/Emotion");
 const { baseResponse } = require("@src/config/response");
+const { transformEmotion } = require("@src/utils/transformEmotion");
 
 const updateEmotion = async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.user._id;
-        const { emotionType, moodRating, journalEntry, tags, emoji } = req.body;
+        const {
+            emotion: emotionValue,
+            emotionType,
+            intensity,
+            moodRating,
+            description,
+            journalEntry,
+            tags,
+            emoji
+        } = req.body;
 
-        const emotion = await Emotion.findOne({ _id: id, userId });
+        const emotionDoc = await Emotion.findOne({ _id: id, userId });
 
-        if (!emotion) {
+        if (!emotionDoc) {
             return baseResponse(res, {
                 success: false,
                 statusCode: 404,
@@ -17,18 +27,24 @@ const updateEmotion = async (req, res) => {
             });
         }
 
-        if (emotionType) emotion.emotionType = emotionType;
-        if (moodRating) emotion.moodRating = moodRating;
-        if (journalEntry !== undefined) emotion.journalEntry = journalEntry;
-        if (tags) emotion.tags = tags;
-        if (emoji !== undefined) emotion.emoji = emoji;
+        if (emotionValue || emotionType) emotionDoc.emotionType = emotionValue || emotionType;
+        if (intensity !== undefined || moodRating !== undefined) {
+            emotionDoc.moodRating = intensity ?? moodRating ?? emotionDoc.moodRating;
+        }
+        if (description !== undefined || journalEntry !== undefined) {
+            emotionDoc.journalEntry = description ?? journalEntry ?? emotionDoc.journalEntry;
+        }
+        if (tags !== undefined) emotionDoc.tags = tags;
+        if (emoji !== undefined) emotionDoc.emoji = emoji;
 
-        await emotion.save();
+        await emotionDoc.save();
+
+        const normalizedEmotion = transformEmotion(emotionDoc);
 
         return baseResponse(res, {
             success: true,
             statusCode: 200,
-            data: emotion,
+            data: normalizedEmotion,
             msg: "EMOTION_UPDATED_SUCCESS",
         });
 

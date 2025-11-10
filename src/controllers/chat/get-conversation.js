@@ -4,26 +4,32 @@ const { baseResponse } = require("@src/config/response");
 const getConversation = async (req, res) => {
     try {
         const userId = req.user._id;
+        const { sessionId } = req.params;
         const { page = 1, limit = 50 } = req.query;
+
+        if (!sessionId) {
+            return baseResponse(res, {
+                success: false,
+                statusCode: 400,
+                msg: "SESSION_ID_REQUIRED",
+            });
+        }
 
         const skip = (parseInt(page) - 1) * parseInt(limit);
 
         const [messages, total] = await Promise.all([
-            ChatMessage.find({ userId })
-                .sort({ createdAt: -1 })
+            ChatMessage.find({ userId, sessionId })
+                .sort({ createdAt: 1 }) // Sort ascending để hiển thị từ cũ đến mới
                 .skip(skip)
                 .limit(parseInt(limit)),
-            ChatMessage.countDocuments({ userId }),
+            ChatMessage.countDocuments({ userId, sessionId }),
         ]);
-
-        // Reverse to show oldest first (chronological order)
-        const chronologicalMessages = messages.reverse();
 
         return baseResponse(res, {
             success: true,
             statusCode: 200,
             data: {
-                messages: chronologicalMessages,
+                messages,
                 pagination: {
                     page: parseInt(page),
                     limit: parseInt(limit),
