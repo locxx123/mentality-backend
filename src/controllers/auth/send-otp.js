@@ -20,7 +20,7 @@ const sendOtp = async (req, res) => {
             return baseResponse(res, {
                 success: false,
                 statusCode: 400,
-                msg: "EMAIL_EXISTED",
+                msg: "Email đã tồn tại",
             });
         }
 
@@ -28,7 +28,7 @@ const sendOtp = async (req, res) => {
             return baseResponse(res, {
                 success: false,
                 statusCode: 400,
-                msg: "OTP_NOT_EXPIRED",
+                msg: "Vui lòng chờ trước khi yêu cầu OTP mới",
             });
         }
 
@@ -53,7 +53,7 @@ const sendOtp = async (req, res) => {
         baseResponse(res, {
             success: true,
             statusCode: 201,
-            msg: "OTP_SENT_SUCCESS",
+            msg: "OTP được gửi thành công",
         });
 
         console.log(`Send otp for ${email}: ${otp}`);
@@ -68,7 +68,7 @@ const sendOtp = async (req, res) => {
         return baseResponse(res, { 
             success: false, 
             statusCode: 400,
-            msg: "OTP_SEND_FAILED" 
+            msg: "Gửi OTP thất bại" 
         });
     }
 };

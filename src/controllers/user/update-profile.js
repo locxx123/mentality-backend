@@ -3,36 +3,33 @@ const { baseResponse } = require("@src/config/response");
 
 const updateProfile = async (req, res) => {
     try {
-        const currentUser = req.user;
-        const { fullName, avatar, bio } = req.body;
+        const userId = req.user._id;
+        const { fullName, age, gender, occupation, bio, avatar } = req.body;
 
-        // Tạo object chứa các trường cần update
-        const updateFields = {};
-        
-        if (fullName !== undefined) {
-            updateFields.fullName = fullName;
-        }
-        
-        if (avatar !== undefined) {
-            updateFields.avatar = avatar;
-        }
+        const user = await User.findById(userId);
 
-        if (bio !== undefined) {
-            updateFields.bio = bio;
+        if (!user) {
+            return baseResponse(res, {
+                success: false,
+                statusCode: 404,
+                msg: "USER_NOT_FOUND",
+            });
         }
 
-        // Cập nhật thông tin user
-        const updatedUser = await User.findByIdAndUpdate(
-            currentUser._id,
-            { $set: updateFields },
-            { new: true }
-        );
+        if (fullName) user.fullName = fullName;
+        if (age !== undefined) user.age = age;
+        if (gender) user.gender = gender;
+        if (occupation !== undefined) user.occupation = occupation;
+        if (bio !== undefined) user.bio = bio;
+        if (avatar) user.avatar = avatar;
+
+        await user.save();
 
         return baseResponse(res, {
             success: true,
             statusCode: 200,
-            msg: "UPDATE_PROFILE_SUCCESS",
-            data: updatedUser
+            data: user,
+            msg: "PROFILE_UPDATED_SUCCESS",
         });
 
     } catch (error) {
@@ -40,9 +37,10 @@ const updateProfile = async (req, res) => {
         return baseResponse(res, {
             success: false,
             statusCode: 500,
-            msg: "SERVER_ERROR"
+            msg: "SERVER_ERROR",
         });
     }
 };
 
 module.exports = { updateProfile };
+

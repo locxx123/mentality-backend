@@ -3,10 +3,11 @@ const Otp = require("@src/models/Otp");
 const User = require("@src/models/User");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
 
 const verifyOtp = async (req, res) => {
     try {
-        const { otp, fullName, email, phone, password } = req.body;
+        const { otp, fullName, email, password } = req.body;
 
         const cleanOtp = otp.trim();
         const cleanEmail = email.trim();
@@ -24,7 +25,7 @@ const verifyOtp = async (req, res) => {
             return baseResponse(res, {
                 success: false,
                 statusCode: 400,
-                msg: "EMAIL_EXISTED",
+                msg: "Email đã tồn tại",
             });
         }
 
@@ -32,36 +33,67 @@ const verifyOtp = async (req, res) => {
             return baseResponse(res, {
                 success: false,
                 statusCode: 400,
-                msg: "OTP_INVALID",
+                msg: "OTP không hợp lệ",
             });
         }
-        const sessionId = crypto.randomBytes(16).toString("hex");
         const salt = await bcrypt.genSalt(12);
         const hashedPassword = await bcrypt.hash(password, salt);
         const user = new User({
             fullName,
             email: cleanEmail,
-            phone,
             password: hashedPassword,
-            sessionId,
             avatar: `https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png`,
             isVerified: true,
         });
         await user.save();
 
+        // Đánh dấu OTP đã sử dụng
+        isVerifyOtp.is_used = true;
+        await isVerifyOtp.save();
 
-        // Xóa OTP cũ bất đồng bộ (không block response)
-        Otp.deleteMany({
-            email,
-            $or: [{ is_used: true }]
-        }).catch(err => console.error("Delete old OTP error:", err));
+        // Tạo access token và refresh token
+        const accessToken = jwt.sign(
+            { userId: user._id, email: user.email },
+            process.env.JWT_SECRET,
+            { expiresIn: process.env.JWT_EXPIRES_IN || '15m' }
+        );
 
-        // Trả response ngay lập tức
-        baseResponse(res, {
+        const refreshTokenValue = jwt.sign(
+            { userId: user._id, email: user.email, type: 'refresh' },
+            process.env.JWT_REFRESH_SECRET,
+            { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' }
+        );
+
+        // Gửi token qua cookie
+        const isProduction = process.env.NODE_ENV === 'production';
+
+        res.cookie('accessToken', accessToken, {
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: 'lax',
+            maxAge: 15 * 60 * 1000 // 15 phút
+        });
+
+        res.cookie('refreshToken', refreshTokenValue, {
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 ngày
+        });
+
+        // Trả thông tin user, không trả token
+        return baseResponse(res, {
             success: true,
             statusCode: 201,
-            data: user,
-            msg: "VERIFY_OTP_SUCCESS",
+            data: {
+                user: {
+                    id: user._id,
+                    fullName: user.fullName,
+                    email: user.email,
+                    profile: user.profile
+                }
+            },
+            msg: "Xác thực thành công",
         });
 
     } catch (error) {
@@ -69,7 +101,7 @@ const verifyOtp = async (req, res) => {
         return baseResponse(res, {
             success: false,
             statusCode: 400,
-            msg: "OTP_SEND_FAILED"
+            msg: "Xác thực thất bại"
         });
     }
 };

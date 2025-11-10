@@ -9,11 +9,6 @@ const userSchema = new Schema(
             type: String,
             trim: true,
         },
-        phone: {
-            type: String,
-            required: true,
-            unique: true,
-        },
         bio: {
             type: String,
             maxLength: 200,
@@ -30,15 +25,6 @@ const userSchema = new Schema(
         password: {
             type: String,
         },
-        sessionId: {
-            type: String,
-            unique: true,
-        },
-        expires_at: {
-            type: Date,
-            required: true,
-            default: () => new Date(Date.now() + OTP_EXPIRES_MS)
-        },
         isVerified: {
             type: Boolean,
             default: false,
@@ -46,6 +32,19 @@ const userSchema = new Schema(
         profile: {
             type: Schema.Types.Mixed, // Cho phép mọi kiểu dữ liệu object (tùy ý)
             default: {},
+        },
+        age: {
+            type: Number,
+            min: 1,
+            max: 150,
+        },
+        gender: {
+            type: String,
+            enum: ['male', 'female', 'other', 'prefer_not_to_say'],
+        },
+        occupation: {
+            type: String,
+            trim: true,
         }
     },
     {
@@ -64,15 +63,9 @@ const userSchema = new Schema(
 userSchema.statics.findByEmail = function (email) {
     return this.findOne({ email: email });
 };
-userSchema.statics.findBySessionId = function (sessionId) {
-    return this.findOne({ sessionId: sessionId });
-};
 userSchema.statics.findByPhone = function (phone) {
     return this.findOne({ phone: phone });
 };
-
-// Index để tự động xóa document hết hạn
-// userSchema.index({ expires_at: 1 }, { expireAfterSeconds: 0 });
 
 const User = mongoose.model("User", userSchema);
 module.exports = User;
