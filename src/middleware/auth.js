@@ -85,10 +85,14 @@ const authMiddleware = async (req, res, next) => {
 
                 // Set accessToken mới vào cookie
                 const isProduction = process.env.NODE_ENV === 'production';
-                res.cookie('accessToken', newAccessToken, {
+                const cookieBaseOptions = {
                     httpOnly: true,
                     secure: isProduction,
-                    sameSite: 'lax',
+                    sameSite: isProduction ? 'none' : 'lax',
+                    path: '/',
+                };
+                res.cookie('accessToken', newAccessToken, {
+                    ...cookieBaseOptions,
                     maxAge: 15 * 60 * 1000 // 15 phút
                 });
 

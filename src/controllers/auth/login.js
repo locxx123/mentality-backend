@@ -50,18 +50,20 @@ const login = async (req, res) => {
 
         // Gửi token qua cookie
         const isProduction = process.env.NODE_ENV === 'production';
-
-        res.cookie('accessToken', accessToken, {
+        const cookieBaseOptions = {
             httpOnly: true,
             secure: isProduction,
-            sameSite: 'lax',
+            sameSite: isProduction ? 'none' : 'lax',
+            path: '/',
+        };
+
+        res.cookie('accessToken', accessToken, {
+            ...cookieBaseOptions,
             maxAge: 15 * 60 * 1000 // 15 phút
         });
 
         res.cookie('refreshToken', refreshTokenValue, {
-            httpOnly: true,
-            secure: isProduction,
-            sameSite: 'lax',
+            ...cookieBaseOptions,
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 ngày
         });
 
