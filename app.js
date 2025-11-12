@@ -30,12 +30,12 @@ const routes = require("./src/routes/index");
 const app = express();
 
 // Cấu hình middleware ngay lập tức (không cần đợi DB)
-app.use(cors({
+app.options('*', cors({
   origin: [
     "http://localhost:5173",
     "https://metality-fe.vercel.app"
   ],
-  credentials: true,
+  credentials: true
 }));
 
 app.use(cookieParser());
