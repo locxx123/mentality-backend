@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-const OTP_EXPIRES_MS = parseInt(process.env.SESSION_ID_EXPIRES_MS) || 259200000; // 3 ngày
 
 const userSchema = new Schema(
     {
