@@ -1,14 +1,14 @@
-const express = require("express");
-const router = express.Router();
-const validate = require("@src/middleware/validate");
-const authMiddleware = require("@src/middleware/auth");
+import express from "express";
+import validate from "../../middleware/validate.js";
+import authMiddleware from "../../middleware/auth.js";
+import { updateProfileSchema } from "../../validations/user/index.js";
+import { updateProfile } from "../../controllers/user/update-profile.js";
+import { getProfile } from "../../controllers/auth/me.js";
 
-const { updateProfileSchema } = require("@src/validations/user");
-const { updateProfile } = require("@src/controllers/user/update-profile");
-const { getProfile } = require("@src/controllers/auth/me");
+const router = express.Router();
 
 router.get("/auth/me", authMiddleware, getProfile);
 router.put("/user/profile", authMiddleware, validate(updateProfileSchema), updateProfile);
 
-module.exports = router;
+export default router;
 

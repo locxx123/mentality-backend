@@ -1,17 +1,14 @@
-const express = require("express");
+import express from "express";
+import validate from "../../middleware/validate.js";
+import { sendOtp } from "../../controllers/auth/send-otp.js";
+import { sendOTPSchema, verifyOTPSchema, loginSchema } from "../../validations/authen/index.js";
+import { verifyOtp } from "../../controllers/auth/verifyOtp.js";
+import { login } from "../../controllers/auth/login.js";
+
 const router = express.Router();
-const validate = require("@src/middleware/validate");
-
-const { sendOtp } = require("@src/controllers/auth/send-otp");
-const { sendOTPSchema, verifyOTPSchema, loginSchema } = require("@src/validations/authen");
-const { verifyOtp } = require("@src/controllers/auth/verifyOtp");
-const { login } = require("@src/controllers/auth/login");
-
-
-
 
 router.post("/auth/send-otp", validate(sendOTPSchema), sendOtp);
 router.post("/auth/verify-otp", validate(verifyOTPSchema), verifyOtp);
 router.post("/auth/login", validate(loginSchema), login);
 
-module.exports = router;
+export default router;

@@ -1,5 +1,5 @@
-const Resource = require("@models/Resource");
-const { baseResponse } = require("@src/config/response");
+import Resource from "../../models/Resource.js";
+import { baseResponse } from "../../config/response.js";
 
 const getResources = async (req, res) => {
     try {
@@ -58,5 +58,5 @@ const getResources = async (req, res) => {
     }
 };
 
-module.exports = { getResources };
+export { getResources };
 

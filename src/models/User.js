@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 const { Schema } = mongoose;
 
 
@@ -62,4 +62,4 @@ userSchema.statics.findByPhone = function (phone) {
 };
 
 const User = mongoose.model("User", userSchema);
-module.exports = User;
+export default User;

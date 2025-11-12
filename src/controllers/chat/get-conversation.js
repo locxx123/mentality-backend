@@ -1,5 +1,5 @@
-const ChatMessage = require("@models/ChatMessage");
-const { baseResponse } = require("@src/config/response");
+import ChatMessage from "../../models/ChatMessage.js";
+import { baseResponse } from "../../config/response.js";
 
 const getConversation = async (req, res) => {
     try {
@@ -50,5 +50,5 @@ const getConversation = async (req, res) => {
     }
 };
 
-module.exports = { getConversation };
+export { getConversation };
 

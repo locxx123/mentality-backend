@@ -1,6 +1,6 @@
-const jwt = require("jsonwebtoken");
-const User = require("@models/User");
-const { baseResponse } = require("@src/config/response");
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
+import { baseResponse } from "../config/response.js";
 
 const authMiddleware = async (req, res, next) => {
     try {
@@ -126,4 +126,4 @@ const authMiddleware = async (req, res, next) => {
     }
 };
 
-module.exports = authMiddleware;
+export default authMiddleware;

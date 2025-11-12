@@ -1,6 +1,6 @@
-const Emotion = require("@models/Emotion");
-const { baseResponse } = require("@src/config/response");
-const { transformEmotion } = require("@src/utils/transformEmotion");
+import Emotion from "../../models/Emotion.js";
+import { baseResponse } from "../../config/response.js";
+import { transformEmotion } from "../../utils/transformEmotion.js";
 
 const getEmotionById = async (req, res) => {
     try {
@@ -36,5 +36,5 @@ const getEmotionById = async (req, res) => {
     }
 };
 
-module.exports = { getEmotionById };
+export { getEmotionById };
 

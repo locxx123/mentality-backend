@@ -1,11 +1,11 @@
-const express = require("express");
-const router = express.Router();
+import express from "express";
+import { getResources } from "../../controllers/resources/get-resources.js";
+import { getResourceById } from "../../controllers/resources/get-resource-by-id.js";
 
-const { getResources } = require("@src/controllers/resources/get-resources");
-const { getResourceById } = require("@src/controllers/resources/get-resource-by-id");
+const router = express.Router();
 
 router.get("/resources", getResources);
 router.get("/resources/:id", getResourceById);
 
-module.exports = router;
+export default router;
 

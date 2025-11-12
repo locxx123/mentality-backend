@@ -1,4 +1,4 @@
-const { baseResponse } = require("@src/config/response");
+import { baseResponse } from "../config/response.js";
 
 const validate = (schema) => {
     return (req, res, next) => {
@@ -23,4 +23,4 @@ const validate = (schema) => {
     };
 }
 
-module.exports = validate;
+export default validate;

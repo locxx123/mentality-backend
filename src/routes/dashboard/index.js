@@ -1,12 +1,12 @@
-const express = require("express");
-const router = express.Router();
-const authMiddleware = require("@src/middleware/auth");
+import express from "express";
+import authMiddleware from "../../middleware/auth.js";
+import { getDashboardStats } from "../../controllers/dashboard/get-stats.js";
+import { getRecentActivities } from "../../controllers/dashboard/get-recent-activities.js";
 
-const { getDashboardStats } = require("@src/controllers/dashboard/get-stats");
-const { getRecentActivities } = require("@src/controllers/dashboard/get-recent-activities");
+const router = express.Router();
 
 router.get("/dashboard/stats", authMiddleware, getDashboardStats);
 router.get("/dashboard/activities", authMiddleware, getRecentActivities);
 
-module.exports = router;
+export default router;
 

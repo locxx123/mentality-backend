@@ -1,8 +1,8 @@
-const express = require("express");
-const cors = require("cors");
-const cookieParser = require("cookie-parser");
-const { connectDB } = require("./src/config/database");
-const routes = require("./src/routes/index");
+import express from "express";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import { connectDB } from "./src/config/database.js";
+import routes from "./src/routes/index.js";
 
 const app = express();
 
@@ -33,10 +33,7 @@ const corsOptions = {
 // 1️⃣ CORS middleware chạy trước tất cả
 app.use(cors(corsOptions));
 
-// 2️⃣ Xử lý preflight requests (OPTIONS) cho tất cả routes
-app.options('*', cors(corsOptions));
-
-// 3️⃣ Thêm headers middleware để đảm bảo headers luôn được set
+// 2️⃣ Thêm headers middleware để đảm bảo headers luôn được set và xử lý preflight requests
 app.use((req, res, next) => {
     const origin = req.headers.origin;
     if (origin && allowedOrigins.includes(origin)) {
@@ -73,7 +70,7 @@ app.use('/api/v1', routes);
 })();
 
 // 7️⃣ Export app cho Vercel
-module.exports = app;
+export default app;
 
 // 8️⃣ Chỉ listen local
 if (process.env.NODE_ENV !== "production") {

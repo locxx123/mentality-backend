@@ -1,4 +1,4 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // Simple sentiment analysis and response generation
 const analyzeSentiment = (message) => {
@@ -92,7 +92,7 @@ const generateResponse = (message, sentiment) => {
     return sentimentResponses[0];
 };
 
-module.exports = {
+export {
     analyzeSentiment,
     generateResponse,
     generateResponseWithContext,

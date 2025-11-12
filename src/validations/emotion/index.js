@@ -1,4 +1,4 @@
-const z = require("zod");
+import { z } from "zod";
 
 const emotionEnum = z.enum([
     'happy',
@@ -69,7 +69,7 @@ const updateEmotionSchema = z.object({
     }),
 });
 
-module.exports = {
+export {
     createEmotionSchema,
     updateEmotionSchema,
 };

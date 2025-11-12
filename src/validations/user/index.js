@@ -1,4 +1,4 @@
-const z = require("zod");
+import { z } from "zod";
 
 const updateProfileSchema = z.object({
     body: z.object({
@@ -11,6 +11,6 @@ const updateProfileSchema = z.object({
     }),
 });
 
-module.exports = {
+export {
     updateProfileSchema,
 };

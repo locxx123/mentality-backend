@@ -22,6 +22,6 @@ const transformEmotion = (emotionDoc) => {
     };
 };
 
-module.exports = { transformEmotion };
+export { transformEmotion };
 
 

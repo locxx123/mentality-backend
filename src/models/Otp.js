@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // Lấy thời gian expires từ env
 const OTP_EXPIRES_MS = parseInt(process.env.OTP_EXPIRES_MS) || 120000; // 2 phút
@@ -44,4 +44,4 @@ otpSchema.index({ email: 1 });
 
 const Otp = mongoose.model("Otp", otpSchema);
 
-module.exports = Otp;
+export default Otp;

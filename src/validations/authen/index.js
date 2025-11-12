@@ -1,4 +1,4 @@
-const z = require("zod");
+import { z } from "zod";
 
 const sendOTPSchema = z.object({
     body: z.object({
@@ -27,7 +27,7 @@ const loginSchema = z.object({
     }),
 });
 
-module.exports = {
+export {
     sendOTPSchema,
     verifyOTPSchema,
     loginSchema

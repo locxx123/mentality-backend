@@ -1,8 +1,8 @@
-const ChatMessage = require("@models/ChatMessage");
-const ChatSession = require("@models/ChatSession");
-const Emotion = require("@models/Emotion");
-const { baseResponse } = require("@src/config/response");
-const { analyzeSentiment, generateResponseWithContext } = require("@services/ai-chat");
+import ChatMessage from "../../models/ChatMessage.js";
+import ChatSession from "../../models/ChatSession.js";
+import Emotion from "../../models/Emotion.js";
+import { baseResponse } from "../../config/response.js";
+import { analyzeSentiment, generateResponseWithContext } from "../../services/ai-chat.js";
 
 const sendMessage = async (req, res) => {
     try {
@@ -107,5 +107,5 @@ const sendMessage = async (req, res) => {
     }
 };
 
-module.exports = { sendMessage };
+export { sendMessage };
 

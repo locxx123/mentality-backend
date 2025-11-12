@@ -1,5 +1,5 @@
-const ChatSession = require("@models/ChatSession");
-const { baseResponse } = require("@src/config/response");
+import ChatSession from "../../models/ChatSession.js";
+import { baseResponse } from "../../config/response.js";
 
 const createSession = async (req, res) => {
     try {
@@ -30,5 +30,5 @@ const createSession = async (req, res) => {
     }
 };
 
-module.exports = { createSession };
+export { createSession };
 

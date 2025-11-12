@@ -6,4 +6,4 @@ const MSG = {
         "internal": "Lỗi hệ thống, vui lòng thử lại sau12"
     },
 };
-module.exports = MSG;
+export default MSG;

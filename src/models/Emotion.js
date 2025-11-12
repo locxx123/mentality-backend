@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 const { Schema } = mongoose;
 
 const emotionSchema = new Schema(
@@ -66,4 +66,4 @@ emotionSchema.index({ userId: 1, date: -1 });
 emotionSchema.index({ userId: 1, emotionType: 1 });
 
 const Emotion = mongoose.model("Emotion", emotionSchema);
-module.exports = Emotion;
+export default Emotion;

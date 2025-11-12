@@ -1,9 +1,9 @@
-const { baseResponse } = require("@src/config/response");
-const Otp = require("@src/models/Otp");
-const User = require("@src/models/User");
-const bcrypt = require("bcryptjs");
-const crypto = require("crypto");
-const jwt = require("jsonwebtoken");
+import { baseResponse } from "../../config/response.js";
+import Otp from "../../models/Otp.js";
+import User from "../../models/User.js";
+import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import jwt from "jsonwebtoken";
 
 const verifyOtp = async (req, res) => {
     try {
@@ -106,4 +106,4 @@ const verifyOtp = async (req, res) => {
     }
 };
 
-module.exports = { verifyOtp };
+export { verifyOtp };

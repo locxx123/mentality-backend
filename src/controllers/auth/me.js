@@ -1,5 +1,5 @@
-const { baseResponse } = require("@src/config/response");
-const User = require("@src/models/User");
+import { baseResponse } from "../../config/response.js";
+import User from "../../models/User.js";
 
 const getProfile = async (req, res) => {
     try {
@@ -34,4 +34,4 @@ const getProfile = async (req, res) => {
         });
     }
 }
-module.exports = { getProfile };
+export { getProfile };

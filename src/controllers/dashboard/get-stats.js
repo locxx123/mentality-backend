@@ -1,7 +1,7 @@
-const Emotion = require("@models/Emotion");
-const ChatSession = require("@models/ChatSession");
-const ChatMessage = require("@models/ChatMessage");
-const { baseResponse } = require("@src/config/response");
+import Emotion from "../../models/Emotion.js";
+import ChatSession from "../../models/ChatSession.js";
+import ChatMessage from "../../models/ChatMessage.js";
+import { baseResponse } from "../../config/response.js";
 
 const getDashboardStats = async (req, res) => {
     try {
@@ -77,5 +77,5 @@ const getDashboardStats = async (req, res) => {
     }
 };
 
-module.exports = { getDashboardStats };
+export { getDashboardStats };
 

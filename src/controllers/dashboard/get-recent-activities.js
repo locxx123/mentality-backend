@@ -1,6 +1,6 @@
-const Emotion = require("@models/Emotion");
-const ChatMessage = require("@models/ChatMessage");
-const { baseResponse } = require("@src/config/response");
+import Emotion from "../../models/Emotion.js";
+import ChatMessage from "../../models/ChatMessage.js";
+import { baseResponse } from "../../config/response.js";
 
 const getRecentActivities = async (req, res) => {
     try {
@@ -121,5 +121,5 @@ const getRecentActivities = async (req, res) => {
     }
 };
 
-module.exports = { getRecentActivities };
+export { getRecentActivities };
 

@@ -1,5 +1,5 @@
-const Emotion = require("@models/Emotion");
-const { baseResponse } = require("@src/config/response");
+import Emotion from "../../models/Emotion.js";
+import { baseResponse } from "../../config/response.js";
 
 // Emotion config matching frontend
 const EMOTION_CONFIG = {
@@ -202,5 +202,5 @@ const getTrends = async (req, res) => {
     }
 };
 
-module.exports = { getTrends };
+export { getTrends };
 

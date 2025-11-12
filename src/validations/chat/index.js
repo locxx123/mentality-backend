@@ -1,4 +1,4 @@
-const z = require("zod");
+import { z } from "zod";
 
 const sendMessageSchema = z.object({
     body: z.object({
@@ -7,7 +7,7 @@ const sendMessageSchema = z.object({
     }),
 });
 
-module.exports = {
+export {
     sendMessageSchema,
 };
 
