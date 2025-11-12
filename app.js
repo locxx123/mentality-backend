@@ -1,5 +1,26 @@
 require('dotenv').config();
-require('module-alias/register');
+
+// Cấu hình module-alias với đường dẫn tuyệt đối để hoạt động trên Vercel
+const path = require('path');
+const moduleAlias = require('module-alias');
+
+// Lấy đường dẫn gốc của project
+const rootPath = path.resolve(__dirname);
+
+// Đăng ký aliases với đường dẫn tuyệt đối
+moduleAlias.addAliases({
+  '@src': path.join(rootPath, 'src'),
+  '@controllers': path.join(rootPath, 'src/controllers'),
+  '@middleware': path.join(rootPath, 'src/middleware'),
+  '@models': path.join(rootPath, 'src/models'),
+  '@services': path.join(rootPath, 'src/services'),
+  '@routes': path.join(rootPath, 'src/routes'),
+  '@utils': path.join(rootPath, 'src/utils'),
+  '@validations': path.join(rootPath, 'src/validations'),
+  '@config': path.join(rootPath, 'src/config'),
+  '@helpers': path.join(rootPath, 'src/helpers'),
+});
+
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
