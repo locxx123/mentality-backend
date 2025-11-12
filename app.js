@@ -6,31 +6,37 @@ const cookieParser = require("cookie-parser");
 const { connectDB } = require("./src/config/database");
 const routes = require("./src/routes/index");
 
-const port = 3000;
-
-
 const app = express();
-// 1. Kết nối MongoDB
-connectDB();
 
-app.use(cors({
-    origin: ["http://localhost:5173","https://metality-fe.vercel.app"],
-    credentials: true
-}));
+(async () => {
+  try {
+    // Kết nối DB
+    await connectDB();
+    console.log("✅ MongoDB connected");
 
-// 2.5. Cấu hình cookie parser
-app.use(cookieParser());
+    // Cấu hình CORS
+    app.use(cors({
+      origin: [
+        "http://localhost:5173",
+        "https://metality-fe.vercel.app"
+      ],
+      credentials: true,
+    }));
 
-// 3. Cấu hình parse JSON body (tăng limit để nhận base64 image)
-app.use(express.json({ limit: '15mb' }));
+    app.use(cookieParser());
+    app.use(express.json({ limit: '15mb' }));
 
-// 4. Khai báo route chính
-app.use('/api/v1', routes);
+    app.use('/api/v1', routes);
 
-// 5. Khởi động server
-if (process.env.NODE_ENV !== "production") {
-  app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
-  });
-}
-module.exports = app;
+    // Xuất app cho Vercel
+    module.exports = app;
+
+    // Chỉ listen khi chạy local
+    if (process.env.NODE_ENV !== "production") {
+      const port = process.env.PORT || 3000;
+      app.listen(port, () => console.log(`Local server running at http://localhost:${port}`));
+    }
+  } catch (err) {
+    console.error("❌ Server initialization failed:", err);
+  }
+})();
