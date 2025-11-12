@@ -29,35 +29,35 @@ const routes = require("./src/routes/index");
 
 const app = express();
 
+// Cấu hình middleware ngay lập tức (không cần đợi DB)
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "https://metality-fe.vercel.app"
+  ],
+  credentials: true,
+}));
+
+app.use(cookieParser());
+app.use(express.json({ limit: '15mb' }));
+
+app.use('/api/v1', routes);
+
+// Kết nối DB (chạy async nhưng không block export)
 (async () => {
   try {
-    // Kết nối DB
     await connectDB();
     console.log("✅ MongoDB connected");
-
-    // Cấu hình CORS
-    app.use(cors({
-      origin: [
-        "http://localhost:5173",
-        "https://metality-fe.vercel.app"
-      ],
-      credentials: true,
-    }));
-
-    app.use(cookieParser());
-    app.use(express.json({ limit: '15mb' }));
-
-    app.use('/api/v1', routes);
-
-    // Xuất app cho Vercel
-    module.exports = app;
-
-    // Chỉ listen khi chạy local
-    if (process.env.NODE_ENV !== "production") {
-      const port = process.env.PORT || 3000;
-      app.listen(port, () => console.log(`Local server running at http://localhost:${port}`));
-    }
   } catch (err) {
-    console.error("❌ Server initialization failed:", err);
+    console.error("❌ Database connection failed:", err);
   }
 })();
+
+// Xuất app cho Vercel ngay lập tức
+module.exports = app;
+
+// Chỉ listen khi chạy local
+if (process.env.NODE_ENV !== "production") {
+  const port = process.env.PORT || 3000;
+  app.listen(port, () => console.log(`Local server running at http://localhost:${port}`));
+}
