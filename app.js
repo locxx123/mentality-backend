@@ -28,7 +28,9 @@ app.use(express.json({ limit: '15mb' }));
 app.use('/api/v1', routes);
 
 // 5. Khởi động server
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
-});
+if (process.env.NODE_ENV !== "production") {
+  app.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
+  });
+}
 module.exports = app;
