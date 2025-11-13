@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../../models/User.js';
 import baseResponse from '../../utils/response.js';
+import { getAccessTokenCookieOptions, getRefreshTokenCookieOptions } from '../../config/cookie.js';
 
 const login = async (req, res) => {
     try {
@@ -49,23 +50,8 @@ const login = async (req, res) => {
 
 
         // Gửi token qua cookie
-        const isProduction = process.env.NODE_ENV === 'production';
-        const cookieBaseOptions = {
-            httpOnly: true,
-            secure: isProduction,
-            sameSite: isProduction ? 'none' : 'lax',
-            path: '/',
-        };
-
-        res.cookie('accessToken', accessToken, {
-            ...cookieBaseOptions,
-            maxAge: 15 * 60 * 1000 // 15 phút
-        });
-
-        res.cookie('refreshToken', refreshTokenValue, {
-            ...cookieBaseOptions,
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 ngày
-        });
+        res.cookie('accessToken', accessToken, getAccessTokenCookieOptions());
+        res.cookie('refreshToken', refreshTokenValue, getRefreshTokenCookieOptions());
 
         const {id, createdAt, updatedAt,isVerified, ...userData} = user.toJSON();
         // Trả thông tin user thôi, không trả token

@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import { baseResponse } from "../config/response.js";
+import { getAccessTokenCookieOptions } from "../config/cookie.js";
 
 const authMiddleware = async (req, res, next) => {
     try {
@@ -84,17 +85,7 @@ const authMiddleware = async (req, res, next) => {
                 );
 
                 // Set accessToken mới vào cookie
-                const isProduction = process.env.NODE_ENV === 'production';
-                const cookieBaseOptions = {
-                    httpOnly: true,
-                    secure: isProduction,
-                    sameSite: isProduction ? 'none' : 'lax',
-                    path: '/',
-                };
-                res.cookie('accessToken', newAccessToken, {
-                    ...cookieBaseOptions,
-                    maxAge: 15 * 60 * 1000 // 15 phút
-                });
+                res.cookie('accessToken', newAccessToken, getAccessTokenCookieOptions());
 
                 // Gắn user vào request
                 req.user = user;
