@@ -9,7 +9,8 @@ const app = express();
 // Danh sách origins được phép
 const allowedOrigins = [
     "http://localhost:5173",
-    "https://metality-fe.vercel.app"
+    "https://metality-fe.vercel.app",
+    "http://metality.online"
 ];
 
 // CORS configuration
