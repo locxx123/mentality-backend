@@ -43,6 +43,7 @@ const emotionSchema = new Schema(
     emoji: {
       type: String,
     },
+    vector: { type: [Number], default: [] },
     date: {
       type: Date,
       default: Date.now,

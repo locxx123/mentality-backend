@@ -11,6 +11,7 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "@google/genai": "^1.29.1",
         "@google/generative-ai": "^0.24.1",
         "bcryptjs": "^3.0.2",
         "cloudinary": "^2.8.0",
@@ -23,6 +24,7 @@
         "module-alias": "^2.2.3",
         "mongoose": "^8.16.0",
         "nodemailer": "^7.0.6",
+        "redis": "^5.9.0",
         "sequelize": "^6.37.7",
         "socket.io": "^4.8.1",
         "zod": "^3.25.67"

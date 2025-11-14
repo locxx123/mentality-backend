@@ -1,6 +1,7 @@
 import Emotion from "../../models/Emotion.js";
 import { baseResponse } from "../../config/response.js";
 import { transformEmotion } from "../../utils/transformEmotion.js";
+import createEmbedding from "../../utils/embed.js";
 
 const createEmotion = async (req, res) => {
     try {
@@ -16,6 +17,12 @@ const createEmotion = async (req, res) => {
         } = req.body;
         const userId = req.user._id;
 
+        // Lấy text để tạo embedding (ưu tiên journalEntry, sau đó description)
+        const textForEmbedding = journalEntry || description || "";
+        
+        // Tạo vector embedding từ text
+        const vector = textForEmbedding ? await createEmbedding(textForEmbedding) : [];
+
         const emotionRecord = new Emotion({
             userId,
             emotionType: emotion || emotionType,
@@ -23,6 +30,7 @@ const createEmotion = async (req, res) => {
             journalEntry: description ?? journalEntry ?? "",
             tags: tags || [],
             emoji: emoji || "",
+            vector: vector,
             date: new Date(),
         });
 
