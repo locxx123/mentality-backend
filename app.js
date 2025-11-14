@@ -3,6 +3,11 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { connectDB } from "./src/config/database.js";
 import routes from "./src/routes/index.js";
+// Import để khởi tạo passport strategies
+import "./src/controllers/auth/google-auth.js";
+import "./src/controllers/auth/facebook-auth.js";
+import { googleCallback } from './src/controllers/auth/google-auth.js';
+import { facebookCallback } from './src/controllers/auth/facebook-auth.js';
 
 const app = express();
 
@@ -58,7 +63,11 @@ app.use((req, res, next) => {
 app.use(cookieParser());
 app.use(express.json({ limit: '15mb' }));
 
-// 5️⃣ Routes chính
+// 5️⃣ OAuth callback routes (outside /api/v1 to match OAuth provider configs)
+app.get('/auth/google/callback', googleCallback);
+app.get('/auth/facebook/callback', facebookCallback);
+
+// 6️⃣ Routes chính
 app.use('/api/v1', routes);
 
 // 6️⃣ Async connect DB

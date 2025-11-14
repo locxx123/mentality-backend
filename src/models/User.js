@@ -19,6 +19,16 @@ const userSchema = new Schema(
         password: {
             type: String,
         },
+        googleId: {
+            type: String,
+            unique: true,
+            sparse: true, // Cho phép null và chỉ unique khi có giá trị
+        },
+        facebookId: {
+            type: String,
+            unique: true,
+            sparse: true, // Cho phép null và chỉ unique khi có giá trị
+        },
         isVerified: {
             type: Boolean,
             default: false,
