@@ -10,7 +10,8 @@ const app = express();
 const allowedOrigins = [
     "http://localhost:5173",
     "https://metality-fe.vercel.app",
-    "http://metality.online"
+    "http://metality.online",
+    "https://metality.online"
 ];
 
 // CORS configuration
