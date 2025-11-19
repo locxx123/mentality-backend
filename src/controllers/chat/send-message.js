@@ -3,11 +3,12 @@ import ChatSession from "../../models/ChatSession.js";
 import Emotion from "../../models/Emotion.js";
 import { baseResponse } from "../../config/response.js";
 import { analyzeSentiment } from "../../services/ai-chat.js";
-import { GoogleGenAI } from "@google/genai";
 import createEmbedding from "../../utils/embed.js";
 
 const DEFAULT_TOP_K = 5;
 const PSYCHO_KEYWORDS = ["mệt", "buồn", "chán nản", "stress", "lo lắng", "tức giận", "căng thẳng"];
+const OPENAI_CHAT_URL = process.env.OPENAI_CHAT_URL || "https://api.openai.com/v1/chat/completions";
+const OPENAI_CHAT_MODEL = process.env.OPENAI_CHAT_MODEL || "gpt-4o-mini";
 
 const cosineSimilarity = (vecA = [], vecB = []) => {
     const length = Math.min(vecA.length, vecB.length);
@@ -32,18 +33,6 @@ const buildContext = (entries) => {
                 `${idx + 1}. Mood: ${entry.emotionType}, Journal: "${entry.journalEntry || "Không có mô tả"}"`
         )
         .join("\n");
-};
-
-const extractAnswerText = (response) => {
-    const candidate = response?.candidates?.[0];
-    if (!candidate) return "";
-    if (Array.isArray(candidate.content?.parts)) {
-        return candidate.content.parts.map(p => p.text || "").join("").trim();
-    }
-    if (Array.isArray(candidate.content)) {
-        return candidate.content.map(p => p.text || "").join("").trim();
-    }
-    return "";
 };
 
 const buildConversationContext = (messages = []) => {
@@ -152,13 +141,15 @@ const sendMessage = async (req, res) => {
         const conversationContext = buildConversationContext(conversationMessages.reverse());
 
         // Xây prompt linh hoạt
-        let prompt = "";
+        let systemPrompt = "";
+        let userPrompt = "";
         let maxTokens = 150;
         const historySection = conversationContext || "Chưa có lịch sử trong phiên.";
 
         if (isPsychological) {
-            prompt = `
-Bạn là AI tư vấn tâm lý. Đây là lịch sử cuộc trò chuyện gần nhất trong phiên:
+            systemPrompt = "Bạn là chuyên gia tư vấn tâm lý của MindScape, luôn đồng cảm và tận dụng dữ liệu cảm xúc gần đây để hỗ trợ người dùng.";
+            userPrompt = `
+Đây là lịch sử cuộc trò chuyện gần nhất trong phiên:
 ${historySection}
 
 Dữ liệu tham khảo từ nhật ký user:
@@ -166,35 +157,56 @@ ${contextText || "Không có dữ liệu cảm xúc phù hợp trong 3 ngày qua
 
 Người dùng hôm nay hỏi: "${message}"
 
-Hãy đưa ra lời khuyên tâm lý, gợi ý kỹ thuật thư giãn, với giọng đồng cảm. Trả lời bằng tiếng Việt, liên kết với lịch sử cuộc trò chuyện nếu phù hợp.
+Hãy đưa ra lời khuyên tâm lý phù hợp, gợi ý kỹ thuật thư giãn và liên kết với lịch sử cuộc trò chuyện nếu phù hợp. Trả lời bằng tiếng Việt.
 `.trim();
             maxTokens = 300; // dài hơn cho tư vấn tâm lý
         } else {
-            prompt = `
-Bạn là AI trợ lý thân thiện. Đây là lịch sử cuộc trò chuyện gần nhất trong phiên:
+            systemPrompt = "Bạn là AI trợ lý thân thiện, trả lời ngắn gọn và chính xác nhưng vẫn giữ mạch trò chuyện.";
+            userPrompt = `
+Đây là lịch sử cuộc trò chuyện gần nhất trong phiên:
 ${historySection}
 
-Hãy trả lời ngắn gọn, đúng trọng tâm câu hỏi sau và giữ sự liên kết với cuộc trò chuyện trước đó nếu phù hợp:
-"${message}"
+Câu hỏi hiện tại của người dùng: "${message}"
+
+Hãy trả lời đúng trọng tâm và giữ sự liên kết với cuộc trò chuyện trước đó nếu phù hợp. Trả lời bằng tiếng Việt.
 `.trim();
             maxTokens = 100; // ngắn hơn
         }
 
-        const apiKey = process.env.GEMINI_API_KEY;
+        const apiKey = process.env.OPENAI_API_KEY;
         if (!apiKey) {
-            return baseResponse(res, { success: false, statusCode: 500, msg: "GEMINI_API_KEY_NOT_FOUND" });
+            return baseResponse(res, { success: false, statusCode: 500, msg: "OPENAI_API_KEY_NOT_FOUND" });
         }
 
-        const ai = new GoogleGenAI({ apiKey });
-
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: prompt,
-            maxOutputTokens: maxTokens,
-            temperature: 0.6
+        const completionResponse = await fetch(OPENAI_CHAT_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify({
+                model: OPENAI_CHAT_MODEL,
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: userPrompt },
+                ],
+                max_tokens: maxTokens,
+                temperature: 0.6,
+            }),
         });
 
-        const aiResponse = response.text || extractAnswerText(response) || "";
+        if (!completionResponse.ok) {
+            const errorText = await completionResponse.text();
+            console.error("OpenAI Chat Completion error:", errorText);
+            return baseResponse(res, {
+                success: false,
+                statusCode: 502,
+                msg: "OPENAI_CHAT_COMPLETION_FAILED",
+            });
+        }
+
+        const completionData = await completionResponse.json();
+        const aiResponse = completionData?.choices?.[0]?.message?.content?.trim() || "";
 
         // Save AI response
         const aiMessage = new ChatMessage({

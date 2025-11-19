@@ -1,6 +1,5 @@
 import Emotion from "../../models/Emotion.js";
 import ChatSession from "../../models/ChatSession.js";
-import ChatMessage from "../../models/ChatMessage.js";
 import { baseResponse } from "../../config/response.js";
 
 const getDashboardStats = async (req, res) => {

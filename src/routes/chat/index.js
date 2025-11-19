@@ -1,12 +1,11 @@
 import express from "express";
 import validate from "../../middleware/validate.js";
 import authMiddleware from "../../middleware/auth.js";
-import { sendMessageSchema, askQuestionSchema } from "../../validations/chat/index.js";
+import { sendMessageSchema } from "../../validations/chat/index.js";
 import { sendMessage } from "../../controllers/chat/send-message.js";
 import { getConversation } from "../../controllers/chat/get-conversation.js";
 import { createSession } from "../../controllers/chat/create-session.js";
 import { getSessions } from "../../controllers/chat/get-sessions.js";
-import { askQuestion } from "../../controllers/chat/ask-question.js";
 
 const router = express.Router();
 
@@ -17,9 +16,6 @@ router.get("/chat/sessions", authMiddleware, getSessions);
 // Message routes
 router.post("/chat/message", authMiddleware, validate(sendMessageSchema), sendMessage);
 router.get("/chat/sessions/:sessionId/messages", authMiddleware, getConversation);
-
-// Ask question with RAG context
-router.post("/chat/ask", authMiddleware, validate(askQuestionSchema), askQuestion);
 
 export default router;
 

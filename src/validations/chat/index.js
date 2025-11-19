@@ -7,23 +7,7 @@ const sendMessageSchema = z.object({
     }),
 });
 
-const askQuestionSchema = z.object({
-    body: z.object({
-        question: z
-            .string()
-            .min(1, { message: "Question cannot be empty" })
-            .max(1000, { message: "Question too long" }),
-        topK: z
-            .number()
-            .int()
-            .min(1)
-            .max(5)
-            .optional(),
-    }),
-});
-
 export {
     sendMessageSchema,
-    askQuestionSchema,
 };
 
