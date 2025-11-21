@@ -6,6 +6,7 @@ import analyticsRoutes from "./analytics/index.js";
 import resourcesRoutes from "./resources/index.js";
 import userRoutes from "./user/index.js";
 import dashboardRoutes from "./dashboard/index.js";
+import relaxRoutes from "./relax/index.js";
 
 const router = express.Router();
 
@@ -16,5 +17,6 @@ router.use(analyticsRoutes);
 router.use(resourcesRoutes);
 router.use(userRoutes);
 router.use(dashboardRoutes);
+router.use(relaxRoutes);
 
 export default router;
