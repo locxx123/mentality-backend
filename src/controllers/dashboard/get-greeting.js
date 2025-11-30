@@ -101,5 +101,3 @@ const getDashboardGreeting = async (req, res) => {
 };
 
 export { getDashboardGreeting };
-
-

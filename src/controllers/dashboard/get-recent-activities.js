@@ -122,4 +122,3 @@ const getRecentActivities = async (req, res) => {
 };
 
 export { getRecentActivities };
-

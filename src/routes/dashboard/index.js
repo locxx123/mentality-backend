@@ -11,4 +11,3 @@ router.get("/dashboard/greeting", authMiddleware, getDashboardGreeting);
 router.get("/dashboard/activities", authMiddleware, getRecentActivities);
 
 export default router;
-
