@@ -1,9 +1,10 @@
-const { baseResponse } = require("@src/config/response");
-const Otp = require("@src/models/Otp");
-const User = require("@src/models/User");
-const bcrypt = require("bcryptjs");
-const crypto = require("crypto");
-const jwt = require("jsonwebtoken");
+import { baseResponse } from "../../config/response.js";
+import Otp from "../../models/Otp.js";
+import User from "../../models/User.js";
+import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import jwt from "jsonwebtoken";
+import { getAccessTokenCookieOptions, getRefreshTokenCookieOptions } from "../../config/cookie.js";
 
 const verifyOtp = async (req, res) => {
     try {
@@ -53,33 +54,20 @@ const verifyOtp = async (req, res) => {
 
         // Tạo access token và refresh token
         const accessToken = jwt.sign(
-            { userId: user._id, email: user.email },
+            { userId: user._id.toString(), email: user.email },
             process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRES_IN || '15m' }
         );
 
         const refreshTokenValue = jwt.sign(
-            { userId: user._id, email: user.email, type: 'refresh' },
+            { userId: user._id.toString(), email: user.email, type: 'refresh' },
             process.env.JWT_REFRESH_SECRET,
             { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' }
         );
 
         // Gửi token qua cookie
-        const isProduction = process.env.NODE_ENV === 'production';
-
-        res.cookie('accessToken', accessToken, {
-            httpOnly: true,
-            secure: isProduction,
-            sameSite: 'lax',
-            maxAge: 15 * 60 * 1000 // 15 phút
-        });
-
-        res.cookie('refreshToken', refreshTokenValue, {
-            httpOnly: true,
-            secure: isProduction,
-            sameSite: 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 ngày
-        });
+        res.cookie('accessToken', accessToken, getAccessTokenCookieOptions());
+        res.cookie('refreshToken', refreshTokenValue, getRefreshTokenCookieOptions());
 
         // Trả thông tin user, không trả token
         return baseResponse(res, {
@@ -106,4 +94,4 @@ const verifyOtp = async (req, res) => {
     }
 };
 
-module.exports = { verifyOtp };
+export { verifyOtp };

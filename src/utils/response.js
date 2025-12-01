@@ -1,4 +1,4 @@
-module.exports = (res, {
+export default (res, {
   success = true,
   statusCode = 200,
   data = null,

@@ -1,8 +1,8 @@
-const { generateOtp } = require("@utils/generateOtp");
-const { sendOtpEmail } = require("@services/otp");
-const Otp = require("@src/models/Otp");
-const { baseResponse } = require("@src/config/response");
-const User = require("@src/models/User");
+import { generateOtp } from "../../utils/generateOtp.js";
+import { sendOtpEmail } from "../../services/otp.js";
+import Otp from "../../models/Otp.js";
+import { baseResponse } from "../../config/response.js";
+import User from "../../models/User.js";
 
 const OTP_EXPIRES_MS = parseInt(process.env.OTP_EXPIRES_MS) || 120000; // 2 phút
 
@@ -73,4 +73,4 @@ const sendOtp = async (req, res) => {
     }
 };
 
-module.exports = { sendOtp };
+export { sendOtp };

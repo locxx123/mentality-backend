@@ -1,5 +1,5 @@
-const Emotion = require("@models/Emotion");
-const { baseResponse } = require("@src/config/response");
+import Emotion from "../../models/Emotion.js";
+import { baseResponse } from "../../config/response.js";
 
 const deleteEmotion = async (req, res) => {
     try {
@@ -32,5 +32,5 @@ const deleteEmotion = async (req, res) => {
     }
 };
 
-module.exports = { deleteEmotion };
+export { deleteEmotion };
 

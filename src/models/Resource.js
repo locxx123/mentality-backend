@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 const { Schema } = mongoose;
 
 const resourceSchema = new Schema(
@@ -60,5 +60,5 @@ const resourceSchema = new Schema(
 resourceSchema.index({ type: 1, category: 1, isActive: 1 });
 
 const Resource = mongoose.model("Resource", resourceSchema);
-module.exports = Resource;
+export default Resource;
 

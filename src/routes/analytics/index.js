@@ -1,10 +1,11 @@
-const express = require("express");
-const router = express.Router();
-const authMiddleware = require("@src/middleware/auth");
+import express from "express";
+import authMiddleware from "../../middleware/auth.js";
+import { getTrends, getTrendsInsights } from "../../controllers/analytics/get-trends.js";
 
-const { getTrends } = require("@src/controllers/analytics/get-trends");
+const router = express.Router();
 
 router.get("/analytics/trends", authMiddleware, getTrends);
+router.get("/analytics/trends/insights", authMiddleware, getTrendsInsights);
 
-module.exports = router;
+export default router;
 

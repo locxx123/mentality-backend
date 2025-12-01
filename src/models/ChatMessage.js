@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 const { Schema } = mongoose;
 
 const chatMessageSchema = new Schema(
@@ -6,6 +6,12 @@ const chatMessageSchema = new Schema(
         userId: {
             type: Schema.Types.ObjectId,
             ref: "User",
+            required: true,
+            index: true,
+        },
+        sessionId: {
+            type: Schema.Types.ObjectId,
+            ref: "ChatSession",
             required: true,
             index: true,
         },
@@ -45,9 +51,10 @@ const chatMessageSchema = new Schema(
     }
 );
 
-// Index để query conversation theo userId
+// Index để query conversation theo userId và sessionId
 chatMessageSchema.index({ userId: 1, createdAt: -1 });
+chatMessageSchema.index({ sessionId: 1, createdAt: -1 });
 
 const ChatMessage = mongoose.model("ChatMessage", chatMessageSchema);
-module.exports = ChatMessage;
+export default ChatMessage;
 

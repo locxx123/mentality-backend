@@ -67,4 +67,6 @@ emotionSchema.index({ userId: 1, date: -1 });
 emotionSchema.index({ userId: 1, emotionType: 1 });
 
 const Emotion = mongoose.model("Emotion", emotionSchema);
+
 export default Emotion;
+

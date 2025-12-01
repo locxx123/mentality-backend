@@ -1,7 +1,8 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const User = require('@models/User');
-const baseResponse = require('@src/utils/response');
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import User from '../../models/User.js';
+import baseResponse from '../../utils/response.js';
+import { getAccessTokenCookieOptions, getRefreshTokenCookieOptions } from '../../config/cookie.js';
 
 const login = async (req, res) => {
     try {
@@ -34,50 +35,31 @@ const login = async (req, res) => {
                 msg: 'Mật khẩu không chính xác'
             });
         }
-
-
         // Tạo access token và refresh token
         const accessToken = jwt.sign(
-            { userId: user._id, email: user.email },
+            { userId: user._id.toString(), email: user.email },
             process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRES_IN || '15m' }
         );
 
         const refreshTokenValue = jwt.sign(
-            { userId: user._id, email: user.email, type: 'refresh' },
+            { userId: user._id.toString(), email: user.email, type: 'refresh' },
             process.env.JWT_REFRESH_SECRET,
             { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' }
         );
 
 
         // Gửi token qua cookie
-        const isProduction = process.env.NODE_ENV === 'production';
+        res.cookie('accessToken', accessToken, getAccessTokenCookieOptions());
+        res.cookie('refreshToken', refreshTokenValue, getRefreshTokenCookieOptions());
 
-        res.cookie('accessToken', accessToken, {
-            httpOnly: true,
-            secure: isProduction,
-            sameSite: 'lax',
-            maxAge: 15 * 60 * 1000 // 15 phút
-        });
-
-        res.cookie('refreshToken', refreshTokenValue, {
-            httpOnly: true,
-            secure: isProduction,
-            sameSite: 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 ngày
-        });
-
+        const {id, createdAt, updatedAt,isVerified, ...userData} = user.toJSON();
         // Trả thông tin user thôi, không trả token
         return baseResponse(res, {
             success: true,
             statusCode: 200,
             data: {
-                user: {
-                    id: user._id,
-                    full_name: user.full_name,
-                    phone_number: user.phone_number,
-                    profile: user.profile
-                }
+                user: userData,
             },
             msg: 'Đăng nhập thành công'
         });
@@ -92,6 +74,4 @@ const login = async (req, res) => {
     }
 };
 
-module.exports = {
-    login
-};
+export { login };

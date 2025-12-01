@@ -1,18 +1,12 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 const { Schema } = mongoose;
 
-const OTP_EXPIRES_MS = parseInt(process.env.SESSION_ID_EXPIRES_MS) || 259200000; // 3 ngày
 
 const userSchema = new Schema(
     {
         fullName: {
             type: String,
             trim: true,
-        },
-        bio: {
-            type: String,
-            maxLength: 200,
-            default: ""
         },
         avatar: {
             type: String,
@@ -24,6 +18,16 @@ const userSchema = new Schema(
         },
         password: {
             type: String,
+        },
+        googleId: {
+            type: String,
+            unique: true,
+            sparse: true, // Cho phép null và chỉ unique khi có giá trị
+        },
+        facebookId: {
+            type: String,
+            unique: true,
+            sparse: true, // Cho phép null và chỉ unique khi có giá trị
         },
         isVerified: {
             type: Boolean,
@@ -63,9 +67,6 @@ const userSchema = new Schema(
 userSchema.statics.findByEmail = function (email) {
     return this.findOne({ email: email });
 };
-userSchema.statics.findByPhone = function (phone) {
-    return this.findOne({ phone: phone });
-};
 
 const User = mongoose.model("User", userSchema);
-module.exports = User;
+export default User;

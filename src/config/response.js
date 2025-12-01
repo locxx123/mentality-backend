@@ -1,4 +1,4 @@
-const baseResponse = (res, {
+export const baseResponse = (res, {
     success = true,
     statusCode = 200,
     data = null,
@@ -12,5 +12,3 @@ const baseResponse = (res, {
         ...(msg && { msg })
     });
 };
-
-module.exports = { baseResponse };
