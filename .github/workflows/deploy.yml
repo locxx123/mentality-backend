@@ -1,0 +1,31 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches: ["metality-loc"]   # Khi push lên nhánh main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy backend to VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            echo "🔁 Pull backend code"
+            cd /root/mentality-deploy/backend
+            git pull origin metality-loc
+
+            echo "🐳 Build & deploy backend container"
+            cd /root/mentality-deploy
+            docker-compose build backend
+            docker-compose up -d backend
+
+            echo "🎉 Backend deployed successfully!"

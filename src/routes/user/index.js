@@ -1,14 +1,16 @@
-const express = require("express");
+import express from "express";
+import validate from "../../middleware/validate.js";
+import authMiddleware from "../../middleware/auth.js";
+import { updateProfileSchema } from "../../validations/user/index.js";
+import { updateProfile } from "../../controllers/user/update-profile.js";
+import { getProfile } from "../../controllers/auth/me.js";
+import geminiEmbed from "../../utils/embed.js";
+
 const router = express.Router();
-const validate = require("@src/middleware/validate");
-const authMiddleware = require("@src/middleware/auth");
 
-const { updateProfileSchema } = require("@src/validations/user");
-const { getProfile } = require("@src/controllers/user/get-profile");
-const { updateProfile } = require("@src/controllers/user/update-profile");
-
-router.get("/user/profile", authMiddleware, getProfile);
+router.get("/auth/me", authMiddleware, getProfile);
 router.put("/user/profile", authMiddleware, validate(updateProfileSchema), updateProfile);
+router.get("/test", geminiEmbed);
 
-module.exports = router;
+export default router;
 

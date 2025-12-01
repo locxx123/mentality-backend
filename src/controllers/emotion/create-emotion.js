@@ -1,28 +1,48 @@
-const Emotion = require("@models/Emotion");
-const { baseResponse } = require("@src/config/response");
+import Emotion from "../../models/Emotion.js";
+import { baseResponse } from "../../config/response.js";
+import { transformEmotion } from "../../utils/transformEmotion.js";
+import createEmbedding from "../../utils/embed.js";
 
 const createEmotion = async (req, res) => {
     try {
-        const { emotionType, moodRating, journalEntry, tags, emoji } = req.body;
+        const {
+            emotion,
+            emotionType,
+            intensity,
+            moodRating,
+            description,
+            journalEntry,
+            tags,
+            emoji,
+        } = req.body;
         const userId = req.user._id;
 
-        const emotion = new Emotion({
+        // Lấy text để tạo embedding (ưu tiên journalEntry, sau đó description)
+        const textForEmbedding = journalEntry || description || "";
+        
+        // Tạo vector embedding từ text
+        const vector = textForEmbedding ? await createEmbedding(textForEmbedding) : [];
+
+        const emotionRecord = new Emotion({
             userId,
-            emotionType,
-            moodRating,
-            journalEntry: journalEntry || "",
+            emotionType: emotion || emotionType,
+            moodRating: intensity ?? moodRating,
+            journalEntry: description ?? journalEntry ?? "",
             tags: tags || [],
             emoji: emoji || "",
+            vector: vector,
             date: new Date(),
         });
 
-        await emotion.save();
+        await emotionRecord.save();
+
+        const normalizedEmotion = transformEmotion(emotionRecord);
 
         return baseResponse(res, {
             success: true,
             statusCode: 201,
-            data: emotion,
-            msg: "EMOTION_CREATED_SUCCESS",
+            data: normalizedEmotion,
+            msg: "Ghi nhận cảm xúc thành công",
         });
 
     } catch (error) {
@@ -30,10 +50,10 @@ const createEmotion = async (req, res) => {
         return baseResponse(res, {
             success: false,
             statusCode: 500,
-            msg: "SERVER_ERROR",
+            msg: "Lỗi server, vui lòng thử lại sau",
         });
     }
 };
 
-module.exports = { createEmotion };
+export { createEmotion };
 
